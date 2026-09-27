@@ -101,7 +101,7 @@ export const PALETTES: Palette[] = [
     sunGlow: 'rgba(255, 170, 140, 0.35)',
     dunes: ['#2d4a69', '#243d58', '#1b3047', '#132236'],
     cloud: 0.1,
-    stars: 70,
+    stars: 42,
     rod: '#f3f7ff',
     rodGlow: 'rgba(160, 196, 255, 0.6)',
     peg: '#f2ece2',

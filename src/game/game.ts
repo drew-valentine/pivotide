@@ -26,7 +26,7 @@ export interface GameHooks {
   onWin?(result: WinResult): { hasNext: boolean } | void;
   onNext?(): void;
   onMenu?(): void;
-  firstGesture?(): void;
+  gesture?(): void;
 }
 
 export interface LoadOptions {
@@ -92,7 +92,7 @@ export class Game {
       undo: () => this.session?.undo(),
       restart: () => this.restart(),
       pause: () => this.hooks.onMenu?.(),
-      firstGesture: () => this.hooks.firstGesture?.(),
+      gesture: () => this.hooks.gesture?.(),
     });
 
     const onResize = () => this.resize();
@@ -140,7 +140,7 @@ export class Game {
     if (!this.level) return;
     clearTimeout(this.winTimer);
     const level = this.level;
-    this.session = new Session(level, (e, s) => this.onEvent(e, s));
+    this.session = new Session(level, (e, s) => this.onEvent(e, s), { startDelayMs: 800 });
     this.renderer.setLevel(level, this.palette);
     this.resize();
     this.loop.resetClock();

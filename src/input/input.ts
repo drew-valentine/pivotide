@@ -7,25 +7,26 @@ export interface InputHandlers {
   undo?(): void;
   restart?(): void;
   pause?(): void;
-  /** Fires on the very first user gesture (used to unlock audio). */
-  firstGesture?(): void;
+  /**
+   * Fires on gestures that browsers count as user activation (pointerup,
+   * touchend, keydown). Used to unlock audio; cheap to call repeatedly.
+   */
+  gesture?(): void;
 }
 
 export class Input {
   enabled = true;
-  private gestured = false;
   private detach: (() => void)[] = [];
 
   constructor(stage: HTMLElement, private h: InputHandlers) {
     const onPointer = (e: PointerEvent) => {
-      this.gesture();
       if ((e.target as HTMLElement).closest('[data-ui]')) return;
       if (e.button !== 0 && e.pointerType === 'mouse') return;
       e.preventDefault();
       if (this.enabled) this.h.reverse();
     };
     const onKey = (e: KeyboardEvent) => {
-      this.gesture();
+      this.h.gesture?.();
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       const target = e.target as HTMLElement;
       const onControl = target.closest('button, input, select, textarea, a');
@@ -55,22 +56,22 @@ export class Input {
     const block = (e: Event) => {
       if (!(e.target as HTMLElement).closest('[data-ui]')) e.preventDefault();
     };
+    // Touch activation only counts on release, so audio unlocks there.
+    const onActivate = () => this.h.gesture?.();
+    window.addEventListener('pointerup', onActivate);
+    window.addEventListener('touchend', onActivate);
     stage.addEventListener('pointerdown', onPointer);
     window.addEventListener('keydown', onKey);
     stage.addEventListener('contextmenu', block);
     stage.addEventListener('dblclick', block);
     this.detach.push(
+      () => window.removeEventListener('pointerup', onActivate),
+      () => window.removeEventListener('touchend', onActivate),
       () => stage.removeEventListener('pointerdown', onPointer),
       () => window.removeEventListener('keydown', onKey),
       () => stage.removeEventListener('contextmenu', block),
       () => stage.removeEventListener('dblclick', block),
     );
-  }
-
-  private gesture(): void {
-    if (this.gestured) return;
-    this.gestured = true;
-    this.h.firstGesture?.();
   }
 
   dispose(): void {

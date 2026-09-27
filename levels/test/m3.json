@@ -1,0 +1,24 @@
+{
+  "id": "test-m3",
+  "name": "Specials Showcase",
+  "world": 2,
+  "hint": "Every peg has a personality",
+  "start": { "peg": "a", "angle": 270, "dir": 1 },
+  "bounds": { "w": 500, "h": 820 },
+  "pegs": [
+    { "id": "a", "x": 150, "y": 700 },
+    { "id": "f", "x": 250, "y": 700, "kind": "fast" },
+    { "id": "s", "x": 350, "y": 700, "kind": "slow" },
+    { "id": "r", "x": 150, "y": 560, "kind": "reverse" },
+    { "id": "o", "x": 250, "y": 560, "kind": "once" },
+    { "id": "p1", "x": 350, "y": 560, "kind": "portal", "pair": "p2" },
+    { "id": "p2", "x": 150, "y": 400, "kind": "portal", "pair": "p1" },
+    { "id": "m", "x": 280, "y": 400, "path": { "type": "polyline", "points": [[260, 420], [380, 380]], "period": 5, "mode": "pingpong" } },
+    { "id": "goal", "x": 250, "y": 230, "kind": "goal" }
+  ],
+  "sparks": [{ "id": "s1", "x": 200, "y": 470 }, { "id": "s2", "x": 330, "y": 300 }],
+  "hazards": [
+    { "id": "o1", "kind": "orb", "x": 420, "y": 250, "r": 11, "path": { "type": "circle", "cx": 400, "cy": 260, "r": 40, "period": 6 } }
+  ],
+  "par": { "time": 20, "moves": 4 }
+}

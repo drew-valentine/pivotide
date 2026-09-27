@@ -88,8 +88,8 @@ body {
 }
 
 @keyframes twinkle {
-  from { fill-opacity: 0.35; }
-  to { fill-opacity: 1; }
+  from { fill-opacity: 0.25; }
+  to { fill-opacity: 0.75; }
 }
 
 .clouds {
@@ -134,6 +134,11 @@ body {
 @keyframes drift {
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(-50%, 0, 0); }
+}
+
+.backdrop.instant,
+.backdrop.instant * {
+  transition: none !important;
 }
 
 /* ---------- HUD ---------- */
@@ -227,10 +232,13 @@ body {
 
 .hint {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
   bottom: calc(var(--safe-b) + 84px);
   max-width: calc(100% - 32px);
-  transform: translate(-50%, 8px);
+  transform: translateY(8px);
   padding: 10px 18px;
   border-radius: 999px;
   background: var(--panel);
@@ -247,7 +255,7 @@ body {
 
 .hint.show {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: none;
 }
 
 .hud-stats {
