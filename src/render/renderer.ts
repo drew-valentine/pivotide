@@ -50,6 +50,7 @@ export class Renderer {
   private sparkAlpha: number[] = [];
   private time = 0;
   private wonAt = -1;
+  private hitFlash = 0;
   private level: CompiledLevel | null = null;
   private frame: Rect = { x: 0, y: 0, w: 1, h: 1 };
   palette!: Palette;
@@ -74,6 +75,7 @@ export class Renderer {
     this.pegAlpha = level.pegs.map(() => 1);
     this.sparkAlpha = (level.def.sparks ?? []).map(() => 1);
     this.wonAt = -1;
+    this.hitFlash = 0;
   }
 
   resize(cssW: number, cssH: number, insets: Insets): void {
@@ -106,6 +108,18 @@ export class Renderer {
     if (!this.level) return;
     pegPos(this.level, pivot, t, this.p);
     this.pulses.push({ x: this.p.x, y: this.p.y, age: 0, max: 0.3, r0: PEG_R + 3, r1: PEG_R + 11, color: this.palette.rod, width: 1.6 });
+  }
+
+  onHit(hazard: number, t: number): void {
+    const h = this.level?.hazards[hazard];
+    if (!h) return;
+    const sh = hazardShape(h, t, this.seg);
+    this.hitFlash = 1;
+    this.pulses.push({
+      x: (sh.x1 + sh.x2) / 2, y: (sh.y1 + sh.y2) / 2, age: 0, max: 0.6,
+      r0: sh.r, r1: sh.r + 26, color: this.palette.rod, width: 2,
+    });
+    this.breakTrail();
   }
 
   onSpark(index: number): void {
@@ -226,7 +240,7 @@ export class Renderer {
     // Trail of the free end.
     {
       const maxAge = this.opts.reducedMotion ? 0.12 : 0.34;
-      if (playing) this.trail.push({ x: tipX, y: tipY, age: 0, brk: false });
+      if (playing && view.mode === 'playing') this.trail.push({ x: tipX, y: tipY, age: 0, brk: false });
       for (const tp of this.trail) tp.age += frameSec;
       while (this.trail.length && this.trail[0].age > maxAge) this.trail.shift();
       ctx.lineCap = 'round';
@@ -260,6 +274,11 @@ export class Renderer {
     ctx.globalAlpha = 1 - wonK * 0.6;
     ctx.strokeStyle = pal.rod;
     ctx.lineWidth = ROD_RADIUS * 1.25;
+    this.hitFlash = Math.max(0, this.hitFlash - frameSec * 1.6);
+    if (view.mode === 'rewind' || this.hitFlash > 0) {
+      // Warm the rod while the tape rewinds: a soft "oops", never an alarm.
+      ctx.strokeStyle = view.mode === 'rewind' ? '#ffe3cf' : pal.rod;
+    }
     this.line(px, py, tipX, tipY);
     ctx.globalAlpha = 1;
 
@@ -282,6 +301,16 @@ export class Renderer {
       ctx.beginPath();
       ctx.arc(tipX, tipY, ROD_RADIUS * 1.25, 0, TAU);
       ctx.fill();
+      if (view.mode === 'breath') {
+        // Settling ring: fills while the rod takes a breath before moving again.
+        ctx.strokeStyle = pal.rod;
+        ctx.globalAlpha = 0.8;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(px, py, PEG_R + 12, -Math.PI / 2, -Math.PI / 2 + TAU * view.breath);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
     }
 
     // Pulses and particles.
