@@ -26,12 +26,12 @@ Decisions (2026-09-27):
 | M5 Shell, accessibility, deploy | m5-shell | v0.5.0 |
 
 ## Backlog
+- [ ] Bump GitHub Actions to Node 24 versions | P2 | S | Created: 2026-09-27 | Owner: unassigned
+  - AC: actions/checkout, actions/setup-node, actions/configure-pages and actions/upload-pages-artifact use versions that run on Node 24; the Pages workflow still tests, builds and deploys with no Node 20 deprecation warning.
+  - Why: GitHub warned on the first Actions run that Node 20 actions are deprecated.
 
 ## Ready
 Follow-ups after v0.5.0, all waiting on the user.
-- [ ] Create GitHub repo, push, enable Pages with "GitHub Actions" as the source | P1 | S | Created: 2026-09-27 | Owner: @user
-  - AC: the workflow publishes on push to main; game and /editor load on the live URL.
-  - Needs the user's go-ahead because it is outward-facing.
 - [ ] By-ear audio mix pass | P2 | S | Created: 2026-09-27 | Owner: @user
   - AC: pivot notes, chimes and ambient pads are balanced on real speakers and headphones. Audio was verified headless only.
 - [ ] Human playtest of par values and difficulty order | P2 | M | Created: 2026-09-27 | Owner: @user
@@ -190,3 +190,11 @@ Follow-ups after v0.5.0, all waiting on the user.
   - Merged to main and tagged v0.5.0 on 2026-09-27.
   - 242 Vitest tests pass. Build passes.
   - Fixed during verification: the hidden title demo could "win" under the world card and record progress; Blue Hour rails were invisible; the landscape title overflowed; vibration was called before user activation.
+
+### Release follow-ups
+- [x] Create GitHub repo, push, enable Pages with "GitHub Actions" as the source | P1 | S | Completed: 2026-09-27 | Owner: @user
+  - AC: the workflow publishes on push to main; game and /editor load on the live URL.
+  - The user approved this outward-facing step.
+  - Repo: https://github.com/drew-valentine/pivotide (public).
+  - Site: https://drew-valentine.github.io/pivotide/ with the editor at /pivotide/editor/.
+  - The first Actions run passed tests, built and deployed. It warned that Node 20 actions are deprecated; see the Backlog card.
