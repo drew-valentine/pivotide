@@ -86,62 +86,67 @@ Decisions (2026-09-27):
 
 ## Ready
 
-### M2 Hazards and scoring
-Starts after M1 is merged to main and tagged v0.1.0.
-- [ ] Walls | P1 | S | Owner: @builder | Branch: m2-hazards
-  - AC: static segments; any contact with the whole rod counts as a hit.
-- [ ] Drifting orbs on paths | P1 | M | Owner: @builder | Branch: m2-hazards
-  - AC: circles move along polyline or loop paths at deterministic speed; positions are a function of tick.
-- [ ] Rotating blades | P1 | M | Owner: @builder | Branch: m2-hazards
-  - AC: segments rotate about a center at a fixed rate; hit checked against the whole rod.
-- [ ] Whole-rod collision (segment vs circle, segment vs segment) | P0 | M | Owner: @builder | Branch: m2-hazards
-  - AC: checks the full rod each tick, including swept motion, so fast rotation cannot tunnel through thin hazards.
-- [ ] Soft rewind to last pivot | P0 | M | Owner: @builder | Branch: m2-hazards
-  - AC: on hit, state eases back over 0.5s to the moment the rod took its last pivot; no life lost, no restart screen.
-- [ ] Undo key | P1 | S | Owner: @builder | Branch: m2-hazards
-  - AC: Z or the on-screen undo button steps back one pivot transfer; repeatable to level start.
-  - AC: the undo button has a touch target of at least 44x44 CSS px and sits inside the safe area.
-- [ ] Stars: par time and par moves | P2 | S | Owner: @builder | Branch: m2-hazards
-  - AC: level data holds par time and par reversal count; results screen awards 0-2 stars; stars never block progress.
-- [ ] Tests: collision | P0 | M | Owner: @builder | Branch: m2-hazards
-  - AC: tangent, endpoint, parallel, overlapping and tunneling cases pass for both collision types.
-- [ ] M2 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | Owner: @builder | Branch: m2-hazards
-
 ## In Progress
 
-### M1 Core feel
-- [ ] Project scaffold | P0 | S | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: `npm run dev`, `npm run build` and `npm test` (Vitest) all pass on a fresh clone; TypeScript strict mode on.
-- [ ] Deterministic math module | P0 | M | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: integer angle units; polynomial sin/cos/atan2 with no `Math.sin`/`Math.cos`/`Math.atan2` in sim code; max error documented and tested.
-- [ ] Fixed-timestep loop with interpolated rendering | P0 | M | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: sim ticks at a fixed rate independent of frame rate; renderer interpolates between the last two states; a tab switch does not cause a spiral of catch-up ticks.
-- [ ] Rod rotation | P0 | S | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: given a pivot and direction, the free end advances by a constant angular step per tick.
-- [ ] Pivot transfer with snap radius and re-arm rule | P0 | M | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: when the free end passes within the snap radius of a peg, that peg becomes the pivot and the rod stays continuous; the peg just left cannot recapture until the rod has moved out of its radius.
-- [ ] Reversal input (key, mouse, touch) | P0 | S | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: Space, click and tap each reverse rotation on the next tick; input is queued as a sim command, never applied mid-tick.
-  - AC: pointer input listens on `pointerdown` for low latency; the canvas sets `touch-action: none`, so taps never scroll, pinch-zoom or double-tap zoom the page.
-  - AC: tapping a HUD button (undo, pause) does not reverse rotation.
-- [ ] Goal detection | P0 | S | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: transferring onto the goal peg ends the level and shows a complete state.
-- [ ] One test level | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: a hand-written level loads from data and is completable in under a minute.
-- [ ] Camera fit and follow | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: levels are authored in portrait-friendly bounds (aspect between about 9:16 and 1:1), and the camera fits the whole level on a phone screen.
-  - AC: follow mode exists only as a fallback for a level that cannot fit; it tracks the pivot smoothly without clipping the rod.
-- [ ] Mobile shell basics | P0 | M | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: viewport meta tag set (`width=device-width, initial-scale=1, viewport-fit=cover`); HUD and canvas respect safe-area insets.
-  - AC: canvas backing store uses devicePixelRatio, capped at 2 on mobile.
-  - AC: resize and orientation changes re-fit the canvas and camera without a reload.
-  - AC: on `visibilitychange` to hidden, the game auto-pauses and the audio context suspends; it resumes paused, waiting for the player.
-- [ ] Tests: pivot transfer, snap radius, determinism | P0 | M | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
-  - AC: identical input sequences produce identical state hashes after N ticks; snap radius edge cases (just inside, just outside, re-arm) covered.
-- [ ] M1 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m1-core
+### M2 Hazards and scoring
+Branch m2-hazards, started 2026-09-27. Hazard rendering (hatched walls, spiked orbs, serrated blades) and collision code exist from M1 groundwork; they need tests and integration.
+- [ ] Walls | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m2-hazards
+  - AC: static segments; any contact with the whole rod counts as a hit.
+- [ ] Drifting orbs on paths | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m2-hazards
+  - AC: circles move along polyline or loop paths at deterministic speed; positions are a function of tick.
+- [ ] Rotating blades | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m2-hazards
+  - AC: segments rotate about a center at a fixed rate; hit checked against the whole rod.
+- [ ] Whole-rod collision (segment vs circle, segment vs segment) | P0 | M | Started: 2026-09-27 | Owner: @builder | Branch: m2-hazards
+  - AC: checks the full rod each tick, including swept motion, so fast rotation cannot tunnel through thin hazards.
+- [ ] Soft rewind to last pivot | P0 | M | Started: 2026-09-27 | Owner: @builder | Branch: m2-hazards
+  - AC: on hit, state eases back over 0.5s to the moment the rod took its last pivot; no life lost, no restart screen.
+- [ ] Undo key | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m2-hazards
+  - AC: Z or the on-screen undo button steps back one pivot transfer; repeatable to level start.
+  - AC: the undo button has a touch target of at least 44x44 CSS px and sits inside the safe area.
+- [ ] Stars: par time and par moves | P2 | S | Started: 2026-09-27 | Owner: @builder | Branch: m2-hazards
+  - AC: level data holds par time and par reversal count; results screen awards 0-2 stars; stars never block progress.
+- [ ] Tests: collision | P0 | M | Started: 2026-09-27 | Owner: @builder | Branch: m2-hazards
+  - AC: tangent, endpoint, parallel, overlapping and tunneling cases pass for both collision types.
+- [ ] M2 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m2-hazards
 
 ## Review
 
 ## Done
 - [x] Write plan: file structure, sim data model, collision approach | P0 | M | Completed: 2026-09-27 | Owner: @planner
   - Approved by the user on 2026-09-27.
+
+### M1 Core feel
+- [x] Project scaffold | P0 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: `npm run dev`, `npm run build` and `npm test` (Vitest) all pass on a fresh clone; TypeScript strict mode on.
+- [x] Deterministic math module | P0 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: integer angle units; polynomial sin/cos/atan2 with no `Math.sin`/`Math.cos`/`Math.atan2` in sim code; max error documented and tested.
+- [x] Fixed-timestep loop with interpolated rendering | P0 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: sim ticks at a fixed rate independent of frame rate; renderer interpolates between the last two states; a tab switch does not cause a spiral of catch-up ticks.
+- [x] Rod rotation | P0 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: given a pivot and direction, the free end advances by a constant angular step per tick.
+- [x] Pivot transfer with snap radius and re-arm rule | P0 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: when the free end passes within the snap radius of a peg, that peg becomes the pivot and the rod stays continuous; the peg just left cannot recapture until the rod has moved out of its radius.
+- [x] Reversal input (key, mouse, touch) | P0 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: Space, click and tap each reverse rotation on the next tick; input is queued as a sim command, never applied mid-tick.
+  - AC: pointer input listens on `pointerdown` for low latency; the canvas sets `touch-action: none`, so taps never scroll, pinch-zoom or double-tap zoom the page.
+  - AC: tapping a HUD button (undo, pause) does not reverse rotation.
+- [x] Goal detection | P0 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: transferring onto the goal peg ends the level and shows a complete state.
+- [x] One test level | P1 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: a hand-written level loads from data and is completable in under a minute.
+- [x] Camera fit and follow | P1 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: levels are authored in portrait-friendly bounds (aspect between about 9:16 and 1:1), and the camera fits the whole level on a phone screen.
+  - AC: follow mode exists only as a fallback for a level that cannot fit; it tracks the pivot smoothly without clipping the rod.
+- [x] Mobile shell basics | P0 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: viewport meta tag set (`width=device-width, initial-scale=1, viewport-fit=cover`); HUD and canvas respect safe-area insets.
+  - AC: canvas backing store uses devicePixelRatio, capped at 2 on mobile.
+  - AC: resize and orientation changes re-fit the canvas and camera without a reload.
+  - AC: on `visibilitychange` to hidden, the game auto-pauses and the audio context suspends; it resumes paused, waiting for the player.
+- [x] Tests: pivot transfer, snap radius, determinism | P0 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - AC: identical input sequences produce identical state hashes after N ticks; snap radius edge cases (just inside, just outside, re-arm) covered.
+- [x] M1 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m1-core
+  - Merged to main and tagged v0.1.0 on 2026-09-27.
+  - 33 Vitest tests pass (math, geometry, pivot, snap, determinism with golden trace, solver). Build passes (32 KB JS).
+  - Added beyond plan: level solver (src/sim/solver.ts, scripts/solve.ts) to prove solvability and suggest par. Goal peg drawn as a cool "oasis" with ripples (a sun icon clashed with the backdrop sun). Camera frames level content, not declared bounds.
+  - Concern: dense peg lattices let the rod drift to the goal with zero presses; level design must break auto-paths (solver reports idle wins).
+  - Concern: Chrome extension unavailable; visual checks use headless Playwright screenshots.

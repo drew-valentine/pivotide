@@ -228,7 +228,8 @@ body {
 .hint {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--safe-b) + 28px);
+  bottom: calc(var(--safe-b) + 84px);
+  max-width: calc(100% - 32px);
   transform: translate(-50%, 8px);
   padding: 10px 18px;
   border-radius: 999px;
@@ -238,7 +239,7 @@ body {
   font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.02em;
-  white-space: nowrap;
+  text-align: center;
   opacity: 0;
   pointer-events: none !important;
   transition: opacity 0.8s ease, transform 0.8s var(--ease-out);
@@ -247,6 +248,34 @@ body {
 .hint.show {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+.hud-stats {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.undo-btn {
+  position: absolute;
+  right: calc(var(--safe-r) + 16px);
+  bottom: calc(var(--safe-b) + 16px);
+  width: 52px;
+  height: 52px;
+}
+
+.undo-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
 }
 
 /* ---------- Cards / overlays ---------- */
@@ -305,7 +334,46 @@ body {
   margin: 6px 0 20px;
 }
 
+.stars-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: -4px 0 10px;
+}
+
+.star svg {
+  width: 34px;
+  height: 34px;
+  fill: rgba(0, 0, 0, 0.1);
+  stroke: none;
+  transform: scale(0.6);
+  opacity: 0.6;
+  transition: transform 0.55s var(--ease-bounce), opacity 0.4s ease, fill 0.4s ease;
+  transition-delay: inherit;
+}
+
+.star:nth-child(2) svg {
+  width: 42px;
+  height: 42px;
+  margin-top: -6px;
+}
+
+.overlay.show .star svg {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.overlay.show .star.on svg {
+  fill: #ffc56e;
+  filter: drop-shadow(0 2px 6px rgba(255, 160, 60, 0.45));
+}
+
+.stat.met .v {
+  color: var(--ink);
+}
+
 .stat .v {
+  color: var(--ink-soft);
   font-size: 22px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;

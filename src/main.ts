@@ -1,12 +1,15 @@
 import './style.css';
 import { Game } from './game/game';
 import type { LevelDef } from './sim/types';
-import testLevel from '../levels/test/m1.json';
+
+const levels = import.meta.glob<LevelDef>('../levels/**/*.json', { eager: true, import: 'default' });
 
 const stage = document.getElementById('stage') as HTMLElement;
 const ui = document.getElementById('ui') as HTMLElement;
 
 const game = new Game(stage, ui);
-game.load(testLevel as LevelDef, { eyebrow: 'Test level', dusk: 0.1 });
+const key = new URLSearchParams(location.search).get('l') ?? 'test/m1';
+const def = levels[`../levels/${key}.json`] ?? levels['../levels/test/m1.json'];
+game.load(def, { eyebrow: 'Test level', dusk: 0.1 });
 
 if (import.meta.env.DEV) (window as unknown as { __game: Game }).__game = game;

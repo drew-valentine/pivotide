@@ -1,7 +1,7 @@
 // Wires a level session to the renderer, loop, input and HUD.
 
 import { compileLevel, type CompiledLevel } from '../sim/level';
-import type { LevelDef, SimEvent, WorldState } from '../sim/types';
+import type { LevelDef, WorldState } from '../sim/types';
 import { Backdrop } from '../render/background';
 import type { Insets } from '../render/camera';
 import { paletteFor, type Palette } from '../render/palette';
@@ -10,12 +10,29 @@ import { Input } from '../input/input';
 import { h, hideOverlay, showOverlay, formatTime } from '../ui/dom';
 import { ICONS } from '../ui/icons';
 import { Loop } from './loop';
-import { Session } from './session';
+import { Session, starsFor, type SessionEvent, type Stars } from './session';
+
+export interface WinResult {
+  stars: Stars;
+  timeMs: number;
+  moves: number;
+  sparks: number;
+  totalSparks: number;
+}
 
 export interface GameHooks {
-  onEvent?(e: SimEvent, s: WorldState, level: CompiledLevel): void;
-  onWin?(session: Session): void;
+  onEvent?(e: SessionEvent, s: WorldState, level: CompiledLevel): void;
+  /** Called when a level is won; return value controls the win card buttons. */
+  onWin?(result: WinResult): { hasNext: boolean } | void;
+  onNext?(): void;
+  onMenu?(): void;
   firstGesture?(): void;
+}
+
+export interface LoadOptions {
+  eyebrow: string;
+  /** 0..1 progress through the game; the sun sinks as it grows. */
+  dusk: number;
 }
 
 export class Game {
@@ -26,16 +43,20 @@ export class Game {
   session: Session | null = null;
   level: CompiledLevel | null = null;
   palette: Palette = paletteFor(1);
-  private hud: HTMLElement;
+  showStats = true;
   private titleEyebrow: HTMLElement;
   private titleName: HTMLElement;
+  private statsEl: HTMLElement;
   private hintEl: HTMLElement;
+  private undoBtn: HTMLButtonElement;
   private overlay: HTMLElement | null = null;
   private hintTimer = 0;
+  private winTimer = 0;
   private insets: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
   private probe: HTMLElement;
+  private lastStats = '';
 
-  constructor(private stage: HTMLElement, private ui: HTMLElement, private hooks: GameHooks = {}) {
+  constructor(private stage: HTMLElement, private ui: HTMLElement, public hooks: GameHooks = {}) {
     this.backdrop = new Backdrop(stage);
     this.renderer = new Renderer(stage.querySelector('canvas') as HTMLCanvasElement);
     this.loop = new Loop(() => this.session?.tick(), (alpha, ms) => this.frame(alpha, ms));
@@ -51,18 +72,26 @@ export class Game {
 
     this.titleEyebrow = h('span', { class: 'eyebrow' });
     this.titleName = h('span', { class: 'name' });
-    this.hud = h('div', { class: 'hud', 'data-ui': '' },
-      h('div', { class: 'hud-title' }, this.titleEyebrow, this.titleName),
+    this.statsEl = h('span', { class: 'hud-stats', 'aria-hidden': 'true' });
+    const hud = h('div', { class: 'hud', 'data-ui': '' },
+      h('div', { class: 'hud-title' }, this.titleEyebrow, this.titleName, this.statsEl),
       h('div', { class: 'hud-buttons' },
-        h('button', { class: 'icon-btn', 'aria-label': 'Restart level', html: ICONS.restart, onclick: () => this.restart() }),
+        h('button', { class: 'icon-btn', 'aria-label': 'Restart level (R)', title: 'Restart (R)', html: ICONS.restart, onclick: () => this.restart() }),
+        h('button', { class: 'icon-btn', 'aria-label': 'Pause (Esc)', title: 'Pause (Esc)', html: ICONS.pause, onclick: () => this.hooks.onMenu?.() }),
       ),
     );
+    this.undoBtn = h('button', {
+      class: 'icon-btn undo-btn', 'data-ui': '', 'aria-label': 'Undo: rewind one peg (Z)', title: 'Undo (Z)',
+      html: ICONS.undo, onclick: () => this.session?.undo(),
+    });
     this.hintEl = h('div', { class: 'hint', role: 'status', 'aria-live': 'polite' });
-    ui.append(this.hud, this.hintEl);
+    ui.append(hud, this.undoBtn, this.hintEl);
 
     this.input = new Input(stage, {
       reverse: () => this.session?.press(),
+      undo: () => this.session?.undo(),
       restart: () => this.restart(),
+      pause: () => this.hooks.onMenu?.(),
       firstGesture: () => this.hooks.firstGesture?.(),
     });
 
@@ -81,17 +110,16 @@ export class Game {
     const cs = getComputedStyle(this.probe);
     const w = this.stage.clientWidth;
     const hgt = this.stage.clientHeight;
-    const hudH = 64;
     this.insets = {
-      top: parseFloat(cs.paddingTop) + hudH,
+      top: parseFloat(cs.paddingTop) + 72,
       right: parseFloat(cs.paddingRight),
-      bottom: parseFloat(cs.paddingBottom) + 16,
+      bottom: parseFloat(cs.paddingBottom) + 64,
       left: parseFloat(cs.paddingLeft),
     };
     this.renderer.resize(w, hgt, this.insets);
   }
 
-  load(def: LevelDef, opts: { eyebrow: string; dusk: number }): void {
+  load(def: LevelDef, opts: LoadOptions): void {
     const level = compileLevel(def);
     this.level = level;
     this.palette = paletteFor(def.world);
@@ -100,22 +128,26 @@ export class Game {
     root.setProperty('--ink', this.palette.ink);
     root.setProperty('--ink-soft', this.palette.inkSoft);
     root.setProperty('--panel', this.palette.panel);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', this.palette.sky[this.palette.sky.length - 2][1]);
+    document.documentElement.dataset.world = String(def.world);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', this.palette.sky[0][1]);
     this.titleEyebrow.textContent = opts.eyebrow;
     this.titleName.textContent = def.name;
-    this.renderer.setLevel(level, this.palette);
-    this.resize();
     this.startSession();
     this.showHint(def.hint);
   }
 
   private startSession(): void {
     if (!this.level) return;
+    clearTimeout(this.winTimer);
     const level = this.level;
     this.session = new Session(level, (e, s) => this.onEvent(e, s));
     this.renderer.setLevel(level, this.palette);
     this.resize();
     this.loop.resetClock();
+    this.closeOverlay();
+  }
+
+  closeOverlay(): void {
     if (this.overlay) {
       void hideOverlay(this.overlay);
       this.overlay = null;
@@ -126,7 +158,7 @@ export class Game {
     this.startSession();
   }
 
-  private onEvent(e: SimEvent, s: WorldState): void {
+  private onEvent(e: SessionEvent, s: WorldState): void {
     const level = this.level!;
     const t = s.tick;
     switch (e.type) {
@@ -139,9 +171,15 @@ export class Game {
       case 'spark':
         this.renderer.onSpark(e.spark);
         break;
+      case 'hit':
+        this.renderer.onHit(e.hazard, t);
+        break;
+      case 'rewind-start':
+        this.renderer.breakTrail();
+        break;
       case 'won':
         this.renderer.onWon(e.peg, t);
-        setTimeout(() => this.showWin(), 900);
+        this.winTimer = window.setTimeout(() => this.showWin(), 950);
         break;
     }
     this.hooks.onEvent?.(e, s, level);
@@ -155,24 +193,44 @@ export class Game {
     this.hintEl.textContent = matchMedia('(pointer: fine)').matches ? text.replace(/^Tap\b/, 'Click or press Space') : text;
     this.hintTimer = window.setTimeout(() => {
       this.hintEl.classList.add('show');
-      this.hintTimer = window.setTimeout(() => this.hintEl.classList.remove('show'), 6000);
+      this.hintTimer = window.setTimeout(() => this.hintEl.classList.remove('show'), 6500);
     }, 700);
   }
 
   private showWin(): void {
     const s = this.session;
-    if (!s) return;
-    this.hooks.onWin?.(s);
+    const level = this.level;
+    if (!s || !level) return;
+    const stars = starsFor(level, s.elapsedMs, s.moves);
+    const totalSparks = level.def.sparks?.length ?? 0;
+    const result: WinResult = { stars, timeMs: s.elapsedMs, moves: s.moves, sparks: s.state.sparks.length, totalSparks };
+    const opts = this.hooks.onWin?.(result) ?? { hasNext: false };
+
+    const starEls = [0, 1, 2].map((i) =>
+      h('span', { class: `star${i < stars.total ? ' on' : ''}`, style: { transitionDelay: `${0.35 + i * 0.18}s` }, html: ICONS.star }),
+    );
+    const par = level.def.par;
     const overlay = h('div', { class: 'overlay', 'data-ui': '' },
-      h('div', { class: 'card', role: 'dialog', 'aria-label': 'Level complete' },
-        h('h2', {}, 'Level complete'),
-        h('p', { class: 'sub' }, this.level?.def.name ?? ''),
+      h('div', { class: 'card', role: 'dialog', 'aria-label': `Level complete, ${stars.total} of 3 stars` },
+        h('div', { class: 'stars-row' }, ...starEls),
+        h('h2', {}, ['Lovely', 'Nicely done', 'Beautiful'][stars.total - 1]),
+        h('p', { class: 'sub' }, level.def.name),
         h('div', { class: 'stats' },
-          h('div', { class: 'stat' }, h('div', { class: 'v' }, formatTime(s.elapsedMs)), h('div', { class: 'k' }, 'Time')),
-          h('div', { class: 'stat' }, h('div', { class: 'v' }, String(s.moves)), h('div', { class: 'k' }, 'Moves')),
+          h('div', { class: `stat${stars.time ? ' met' : ''}` },
+            h('div', { class: 'v' }, formatTime(s.elapsedMs)),
+            h('div', { class: 'k' }, `Time · par ${par.time}s`)),
+          h('div', { class: `stat${stars.moves ? ' met' : ''}` },
+            h('div', { class: 'v' }, String(s.moves)),
+            h('div', { class: 'k' }, `Moves · par ${par.moves}`)),
+          totalSparks > 0
+            ? h('div', { class: `stat${result.sparks === totalSparks ? ' met' : ''}` },
+                h('div', { class: 'v' }, `${result.sparks}/${totalSparks}`),
+                h('div', { class: 'k' }, 'Sparks'))
+            : null,
         ),
         h('div', { class: 'btn-row' },
-          h('button', { class: 'btn primary', onclick: () => this.restart() }, 'Play again'),
+          h('button', { class: `btn${opts.hasNext ? '' : ' primary'}`, onclick: () => this.restart() }, 'Replay'),
+          opts.hasNext ? h('button', { class: 'btn primary', onclick: () => this.hooks.onNext?.() }, 'Next') : null,
         ),
       ),
     );
@@ -180,14 +238,22 @@ export class Game {
     this.overlay = overlay;
     showOverlay(overlay);
     if (!matchMedia('(pointer: coarse)').matches) {
-      (overlay.querySelector('.btn.primary') as HTMLElement | null)?.focus({ preventScroll: true, focusVisible: false } as FocusOptions);
+      (overlay.querySelector('.btn.primary') as HTMLElement | null)?.focus({ preventScroll: true });
     }
   }
 
   private frame(alpha: number, ms: number): void {
     const s = this.session;
     if (!s) return;
-    if (!this.loop.paused) s.addTime(ms);
+    if (!this.loop.paused) s.frame(ms);
     this.renderer.draw(s.view(alpha), ms / 1000);
+    this.undoBtn.disabled = !s.canUndo();
+    if (this.showStats) {
+      const text = `${formatTime(s.elapsedMs).replace(/\.\d/, '')} · ${s.moves} ${s.moves === 1 ? 'move' : 'moves'}`;
+      if (text !== this.lastStats) {
+        this.statsEl.textContent = text;
+        this.lastStats = text;
+      }
+    }
   }
 }
