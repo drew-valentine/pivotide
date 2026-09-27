@@ -28,37 +28,20 @@ Decisions (2026-09-27):
 ## Backlog
 
 ## Ready
+Follow-ups after v0.5.0, all waiting on the user.
+- [ ] Create GitHub repo, push, enable Pages with "GitHub Actions" as the source | P1 | S | Created: 2026-09-27 | Owner: @user
+  - AC: the workflow publishes on push to main; game and /editor load on the live URL.
+  - Needs the user's go-ahead because it is outward-facing.
+- [ ] By-ear audio mix pass | P2 | S | Created: 2026-09-27 | Owner: @user
+  - AC: pivot notes, chimes and ambient pads are balanced on real speakers and headphones. Audio was verified headless only.
+- [ ] Human playtest of par values and difficulty order | P2 | M | Created: 2026-09-27 | Owner: @user
+  - AC: pars are tuned by play and levels are reordered where needed. Some late levels need only 1 or 2 moves.
+- [ ] Level geometry variety pass (optional) | P3 | L | Created: 2026-09-27 | Owner: @user
+  - AC: more layouts break away from the hex-patch pattern while keeping all level tests green.
+- [ ] Offline service worker (optional) | P3 | S | Created: 2026-09-27 | Owner: @user
+  - AC: after one visit, the game and levels load offline.
 
 ## In Progress
-
-### M5 Shell, accessibility, deploy
-Branch m5-shell, started 2026-09-27. Settings and progress storage (src/storage/save.ts) and the haptics toggle landed early in M3; the Settings and save cards still need their UI and full AC checked.
-Drafted so far: app shell (title screen with an attract-mode demo, level select, pause, settings), PWA manifest and icons, and the GitHub Pages workflow (Node 22, BASE_PATH taken from the repo name).
-- [ ] Menus and level select | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
-  - AC: title, world and level select showing stars, sparks and locks; pause menu with restart and quit.
-  - Drafted: title with attract-mode demo, level select, pause.
-- [ ] Settings | P2 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
-  - AC: volume, mute, reduced motion, colorblind and haptics options, all persisted.
-  - Drafted: settings screen.
-- [ ] localStorage save | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
-  - AC: progress, stars, sparks and settings survive reload; a corrupt or missing save falls back to defaults.
-- [ ] Reduced motion | P2 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
-  - AC: honors `prefers-reduced-motion` and the setting; disables particles, screen shake and camera easing.
-- [ ] Colorblind-safe hazard shapes | P2 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
-  - AC: every hazard and special peg type is identifiable by shape alone.
-- [ ] Scaling from phone portrait to 4K | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
-  - AC: canvas sized by devicePixelRatio (capped per "Mobile shell basics"); layout usable at 360x740 portrait and sharp at 3840x2160.
-- [ ] PWA manifest + theme color (add to home screen) | P2 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
-  - AC: web app manifest with name, icons and `display: standalone`; `theme-color` meta matches the sky palette; the game can be added to the home screen on iOS and Android and launches full screen.
-  - Drafted: manifest and icons.
-- [ ] Mobile verification pass | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
-  - AC: using browser automation, the game and menus are checked at 390x844 and 360x740 portrait, a landscape phone, a tablet, desktop and 4K.
-  - AC: at each size the whole level is visible, HUD buttons clear the safe area, taps reverse without zooming or scrolling, and text is legible; defects become cards.
-- [ ] GitHub Pages deploy workflow | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
-  - AC: Actions workflow builds and publishes on push to main; Vite `base` matches the repo path; game and /editor both load on the live URL.
-  - AC: CI uses Node 22 (Vite 8 wants 20.19+; local Node 20.18 only warns).
-  - Drafted: workflow on Node 22 with BASE_PATH from the repo name; not yet verified on the live URL.
-- [ ] M5 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
 
 ## Review
 
@@ -183,3 +166,27 @@ Drafted so far: app shell (title screen with an attract-mode demo, level select,
   - Concern: some late levels are easier than their position suggests; w3-06 and w3-07 each need 1 move.
   - Concern: layouts are fairly uniform hex patches.
   - Concern: par values come from the solver and have not been tuned by human play.
+
+### M5 Shell, accessibility, deploy
+- [x] Menus and level select | P1 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: title, world and level select showing stars, sparks and locks; pause menu with restart and quit.
+- [x] Settings | P2 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: volume, mute, reduced motion, colorblind and haptics options, all persisted.
+- [x] localStorage save | P1 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: progress, stars, sparks and settings survive reload; a corrupt or missing save falls back to defaults.
+- [x] Reduced motion | P2 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: honors `prefers-reduced-motion` and the setting; disables particles, screen shake and camera easing.
+- [x] Colorblind-safe hazard shapes | P2 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: every hazard and special peg type is identifiable by shape alone.
+- [x] Scaling from phone portrait to 4K | P1 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: canvas sized by devicePixelRatio (capped per "Mobile shell basics"); layout usable at 360x740 portrait and sharp at 3840x2160.
+- [x] PWA manifest + theme color (add to home screen) | P2 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: web app manifest with name, icons and `display: standalone`; `theme-color` meta matches the sky palette.
+- [x] Mobile verification pass | P1 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - Checked at 390x844, 360x740, 844x390 landscape, 1024x1366 tablet, 1440x900 desktop and 3840x2160. Keyboard-only flow tested.
+- [x] GitHub Pages deploy workflow | P1 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - Workflow on Node 22 with BASE_PATH from the repo name. Production build verified locally under /pivotide/ (game, editor and manifest load). Live URL waits on the repo card in Ready.
+- [x] M5 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - Merged to main and tagged v0.5.0 on 2026-09-27.
+  - 242 Vitest tests pass. Build passes.
+  - Fixed during verification: the hidden title demo could "win" under the world card and record progress; Blue Hour rails were invisible; the landscape title overflowed; vibration was called before user activation.
