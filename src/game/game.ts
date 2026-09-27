@@ -26,6 +26,7 @@ export interface GameHooks {
   onWin?(result: WinResult): { hasNext: boolean } | void;
   onNext?(): void;
   onMenu?(): void;
+  onLevels?(): void;
   gesture?(): void;
 }
 
@@ -33,6 +34,8 @@ export interface LoadOptions {
   eyebrow: string;
   /** 0..1 progress through the game; the sun sinks as it grows. */
   dusk: number;
+  /** Skip the hint (attract mode). */
+  quiet?: boolean;
 }
 
 export class Game {
@@ -44,6 +47,9 @@ export class Game {
   level: CompiledLevel | null = null;
   palette: Palette = paletteFor(1);
   showStats = true;
+  /** Called when the current session is won (used by the title-screen demo). */
+  onSessionWon: (() => void) | null = null;
+  private hud: HTMLElement;
   private titleEyebrow: HTMLElement;
   private titleName: HTMLElement;
   private statsEl: HTMLElement;
@@ -73,13 +79,13 @@ export class Game {
     this.titleEyebrow = h('span', { class: 'eyebrow' });
     this.titleName = h('span', { class: 'name' });
     this.statsEl = h('span', { class: 'hud-stats', 'aria-hidden': 'true' });
-    const hud = h('div', { class: 'hud', 'data-ui': '' },
+    const hud = (this.hud = h('div', { class: 'hud', 'data-ui': '' },
       h('div', { class: 'hud-title' }, this.titleEyebrow, this.titleName, this.statsEl),
       h('div', { class: 'hud-buttons' },
         h('button', { class: 'icon-btn', 'aria-label': 'Restart level (R)', title: 'Restart (R)', html: ICONS.restart, onclick: () => this.restart() }),
         h('button', { class: 'icon-btn', 'aria-label': 'Pause (Esc)', title: 'Pause (Esc)', html: ICONS.pause, onclick: () => this.hooks.onMenu?.() }),
       ),
-    );
+    ));
     this.undoBtn = h('button', {
       class: 'icon-btn undo-btn', 'data-ui': '', 'aria-label': 'Undo: rewind one peg (Z)', title: 'Undo (Z)',
       html: ICONS.undo, onclick: () => this.session?.undo(),
@@ -133,7 +139,29 @@ export class Game {
     this.titleEyebrow.textContent = opts.eyebrow;
     this.titleName.textContent = def.name;
     this.startSession();
-    this.showHint(def.hint);
+    this.showHint(opts.quiet ? undefined : def.hint);
+  }
+
+  setHudVisible(v: boolean): void {
+    this.hud.classList.toggle('hidden', !v);
+    this.undoBtn.classList.toggle('hidden', !v);
+    if (!v) this.showHint(undefined);
+  }
+
+  setStatsVisible(v: boolean): void {
+    this.showStats = v;
+    this.statsEl.hidden = !v;
+  }
+
+  /** Fade the playfield out, swap content, and fade back in. */
+  transition(swap: () => void): void {
+    const canvas = this.renderer.canvas;
+    const quick = this.renderer.opts.reducedMotion;
+    canvas.classList.add('fading');
+    window.setTimeout(() => {
+      swap();
+      requestAnimationFrame(() => canvas.classList.remove('fading'));
+    }, quick ? 60 : 280);
   }
 
   private startSession(): void {
@@ -179,7 +207,8 @@ export class Game {
         break;
       case 'won':
         this.renderer.onWon(e.peg, t);
-        this.winTimer = window.setTimeout(() => this.showWin(), 950);
+        if (this.onSessionWon) this.onSessionWon();
+        else this.winTimer = window.setTimeout(() => this.showWin(), 950);
         break;
     }
     this.hooks.onEvent?.(e, s, level);
@@ -229,6 +258,7 @@ export class Game {
             : null,
         ),
         h('div', { class: 'btn-row' },
+          this.hooks.onLevels ? h('button', { class: 'btn ghost', 'aria-label': 'Levels', onclick: () => this.hooks.onLevels?.() }, 'Levels') : null,
           h('button', { class: `btn${opts.hasNext ? '' : ' primary'}`, onclick: () => this.restart() }, 'Replay'),
           opts.hasNext ? h('button', { class: 'btn primary', onclick: () => this.hooks.onNext?.() }, 'Next') : null,
         ),

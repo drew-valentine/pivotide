@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Pivotide Editor</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f3a878'/%3E%3Cline x1='20' y1='42' x2='44' y2='22' stroke='%23e6fbff' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='20' cy='42' r='6' fill='%23fff8ec'/%3E%3C/svg%3E" />
+  </head>
+  <body class="editor">
+    <header class="ed-top">
+      <div class="ed-brand">Pivotide <span>Editor</span></div>
+      <div class="ed-top-actions">
+        <select id="ed-open" aria-label="Open a shipped level"></select>
+        <button id="ed-new" class="ed-btn">New</button>
+        <button id="ed-import" class="ed-btn">Import</button>
+        <button id="ed-export" class="ed-btn">Export</button>
+        <button id="ed-solve" class="ed-btn">Solve</button>
+        <button id="ed-play" class="ed-btn primary">Test play ▶</button>
+      </div>
+    </header>
+    <nav class="ed-tools" id="ed-tools" aria-label="Tools"></nav>
+    <main class="ed-canvas-wrap" id="ed-stage">
+      <canvas id="ed-canvas"></canvas>
+      <div class="ed-status" id="ed-status"></div>
+    </main>
+    <aside class="ed-panel" id="ed-panel"></aside>
+    <div class="ed-test" id="ed-test" hidden>
+      <div id="stage">
+        <canvas id="play"></canvas>
+        <div id="ui"></div>
+      </div>
+      <button class="ed-btn ed-test-close" id="ed-test-close" data-ui>◀ Back to editor (Esc)</button>
+    </div>
+    <input type="file" id="ed-file" accept=".json,application/json" hidden />
+    <script type="module" src="/src/editor/main.ts"></script>
+  </body>
+</html>

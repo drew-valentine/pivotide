@@ -1,0 +1,264 @@
+body.editor {
+  display: grid;
+  grid-template-columns: 76px 1fr 320px;
+  grid-template-rows: 52px 1fr;
+  grid-template-areas: 'top top top' 'tools canvas panel';
+  height: 100vh;
+  overflow: hidden;
+  background: #2b1d26;
+  color: #fbeee2;
+  user-select: none;
+  -webkit-user-select: none;
+  font-size: 13px;
+}
+
+.ed-top {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: #3a2632;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ed-brand {
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+
+.ed-brand span {
+  color: #f3a878;
+  font-weight: 500;
+}
+
+.ed-top-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ed-btn,
+.ed-top select,
+.ed-panel input,
+.ed-panel select,
+.ed-panel textarea {
+  font: 500 13px var(--font);
+  color: #fbeee2;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.ed-btn {
+  cursor: pointer;
+}
+
+.ed-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.ed-btn.primary {
+  background: #f3a878;
+  color: #3a2030;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.ed-btn.danger {
+  color: #ffb1a8;
+}
+
+.ed-tools {
+  grid-area: tools;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 6px;
+  background: #33222c;
+  overflow-y: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ed-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 2px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #e8d6ca;
+  cursor: pointer;
+  font: 500 11px var(--font);
+}
+
+.ed-tool .ic {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.ed-tool kbd {
+  font: 10px var(--font);
+  opacity: 0.5;
+}
+
+.ed-tool:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.ed-tool.active {
+  background: #f3a878;
+  color: #3a2030;
+}
+
+.ed-tools hr {
+  width: 60%;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 4px auto;
+}
+
+.ed-canvas-wrap {
+  grid-area: canvas;
+  position: relative;
+  overflow: hidden;
+}
+
+.ed-canvas-wrap canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ed-status {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(30, 18, 26, 0.7);
+  font-size: 12px;
+  pointer-events: none;
+  max-width: calc(100% - 24px);
+}
+
+.ed-status.error {
+  color: #ffb1a8;
+}
+
+.ed-panel {
+  grid-area: panel;
+  background: #33222c;
+  overflow-y: auto;
+  padding: 12px 14px 40px;
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  user-select: text;
+}
+
+.ed-panel h3 {
+  margin: 14px 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f3a878;
+}
+
+.ed-panel h3:first-child {
+  margin-top: 2px;
+}
+
+.ed-row {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ed-row label {
+  color: rgba(251, 238, 226, 0.7);
+}
+
+.ed-row input,
+.ed-row select {
+  width: 100%;
+  min-width: 0;
+}
+
+.ed-row.two {
+  grid-template-columns: 92px 1fr 1fr;
+}
+
+.ed-panel .ed-btn {
+  margin: 2px 4px 2px 0;
+}
+
+.ed-note {
+  color: rgba(251, 238, 226, 0.6);
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
+.ed-solve {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.ed-test {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+
+.ed-test #stage {
+  position: absolute;
+  inset: 0;
+}
+
+.ed-test-close {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 18px);
+  transform: translateX(-50%);
+  z-index: 5;
+  background: rgba(40, 24, 32, 0.75);
+  backdrop-filter: blur(6px);
+}
+
+.ed-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 10, 16, 0.55);
+}
+
+.ed-modal-card {
+  width: min(620px, 92vw);
+  background: #3a2632;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.ed-modal-card textarea {
+  width: 100%;
+  height: 50vh;
+  font: 12px ui-monospace, 'SF Mono', Menlo, monospace;
+  color: #fbeee2;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  resize: vertical;
+}

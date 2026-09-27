@@ -72,12 +72,21 @@ export interface LevelDef {
   speed?: number;
   /** Radial capture tolerance in world units (default 14). */
   snap?: number;
+  /** Re-arm distance for the previous pivot (default 0.62 x rod). */
+  arm?: number;
   start: { peg: string; angle: number; dir: 1 | -1 };
   bounds: { w: number; h: number };
   pegs: PegDef[];
   hazards?: HazardDef[];
   sparks?: SparkDef[];
   par: { time: number; moves: number };
+  /**
+   * Reference solution: ticks on which to press reverse. Replaying it must win.
+   * Tests use it to prove every shipped level is solvable.
+   */
+  solution?: number[];
+  /** Reference run that also collects every spark. */
+  sparkSolution?: number[];
 }
 
 export type Status = 'playing' | 'hit' | 'won';

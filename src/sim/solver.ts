@@ -9,7 +9,7 @@
 import { TURN } from './fixed';
 import { initialState, type CompiledLevel } from './level';
 import { step } from './step';
-import type { WorldState } from './types';
+import { TICKS_PER_SEC, type WorldState } from './types';
 
 export interface Solution {
   presses: number[];
@@ -19,12 +19,20 @@ export interface Solution {
 }
 
 export interface SolveOptions {
-  /** Tick spacing between candidate press moments (default 3). */
+  /** Tick spacing between candidate press moments (default 5). */
   sample?: number;
   /** Stop after this many expanded nodes (default 6000). */
   maxNodes?: number;
   /** Require collecting every spark. */
   allSparks?: boolean;
+  /** Give up after this much wall time (default: no limit). */
+  timeLimitMs?: number;
+  /** Ignore presses before this tick (design tool: rule out "flip at start" answers). */
+  earliest?: number;
+  /** Minimum ticks between presses, to keep solutions humanly playable (default 20). */
+  minGap?: number;
+  /** Called for every expanded node (design tooling: which pegs are reachable). */
+  onVisit?: (s: WorldState) => void;
 }
 
 interface Node {
@@ -32,22 +40,38 @@ interface Node {
   presses: number[];
 }
 
-function isDynamic(level: CompiledLevel): boolean {
-  return level.pegs.some((p) => p.path) || level.hazards.some((h) => h.path || h.def.kind === 'blade');
+/** Ticks after which all moving scenery repeats (capped), or 0 for static levels. */
+function cyclePeriod(level: CompiledLevel): number {
+  const periods: number[] = [];
+  for (const p of level.pegs) if (p.path) periods.push(p.path.def.period);
+  for (const h of level.hazards) {
+    if (h.path) periods.push(h.path.def.period);
+    if (h.def.kind === 'blade' && h.def.spin !== 0) periods.push(1 / Math.abs(h.def.spin) / 2); // bars are symmetric
+  }
+  if (!periods.length) return 0;
+  const ticks = periods.map((s) => Math.max(1, Math.round(s * TICKS_PER_SEC)));
+  const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
+  let l = ticks[0];
+  for (const t of ticks.slice(1)) {
+    l = (l / gcd(l, t)) * t;
+    if (l > TICKS_PER_SEC * 120) return TICKS_PER_SEC * 120;
+  }
+  return l;
 }
 
-function keyOf(s: WorldState, dynamic: boolean): string {
+function keyOf(s: WorldState, period: number): string {
   const a = Math.round((((s.angle % TURN) + TURN) % TURN) / 4096);
-  // Moving scenery makes time part of the state; bucket it to keep the search finite.
-  const t = dynamic ? `|${Math.floor(s.tick / 12)}` : '';
+  // Moving scenery makes time part of the state; fold it into the motion cycle
+  // and bucket it to keep the search finite.
+  const t = period ? `|${Math.floor((s.tick % period) / 24)}` : '';
   return `${s.pivot}|${s.last}|${s.armed ? 1 : 0}|${s.dir}|${a}|${s.consumed.join(',')}|${s.sparks.join(',')}${t}`;
 }
 
 export function solve(level: CompiledLevel, opts: SolveOptions = {}): Solution | null {
-  const sample = opts.sample ?? 3;
+  const sample = opts.sample ?? 5;
   const maxNodes = opts.maxNodes ?? 6000;
   const nSparks = level.def.sparks?.length ?? 0;
-  const dynamic = isDynamic(level);
+  const dynamic = cyclePeriod(level);
   // Longest we will wait for a landing: a little over one full turn at the slowest peg speed.
   const minSpeed = Math.max(1, Math.min(...level.pegs.map((p) => p.speed)));
   const horizon = Math.ceil((TURN / minSpeed) * 1.05) + 2;
@@ -61,8 +85,10 @@ export function solve(level: CompiledLevel, opts: SolveOptions = {}): Solution |
 
   const done = (s: WorldState) => s.status === 'won' && (!opts.allSparks || s.sparks.length === nSparks);
 
+  const deadline = opts.timeLimitMs ? performance.now() + opts.timeLimitMs : Infinity;
   let qi = 0;
   while (expanded < maxNodes) {
+    if ((expanded & 63) === 0 && performance.now() > deadline) break;
     if (qi >= layer.length) {
       if (!next.length || best) break;
       layer = next;
@@ -71,6 +97,7 @@ export function solve(level: CompiledLevel, opts: SolveOptions = {}): Solution |
     }
     const node = layer[qi++];
     expanded++;
+    opts.onVisit?.(node.state);
 
     // Walk the no-press path until the next landing, recording states.
     const trail: WorldState[] = [node.state];
@@ -109,9 +136,13 @@ export function solve(level: CompiledLevel, opts: SolveOptions = {}): Solution |
 
     // Branch: press at sampled points before the landing (or before a hit).
     const limit = trail.length - 1;
+    const minGap = opts.minGap ?? 20;
+    const lastPress = node.presses.length ? node.presses[node.presses.length - 1] : -Infinity;
     for (let d = 0; d < limit; d += sample) {
       const base = trail[d];
       if (base.status !== 'playing') break;
+      if (opts.earliest && base.tick < opts.earliest) continue;
+      if (base.tick - lastPress < minGap) continue;
       const pressTick = base.tick;
       const first = step(level, base, true);
       let st = first.state;

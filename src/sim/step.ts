@@ -186,10 +186,12 @@ export function step(level: CompiledLevel, input: WorldState, reverse: boolean):
     pegPos(level, s.pivot, t1, tmpA);
     rodTip(tmpA.x, tmpA.y, s.angle, L, tmpB);
 
-    // Re-arm the previous pivot once the free end has left its snap radius.
+    // Re-arm the previous pivot once the free end is far enough from it. Until
+    // then the rod passes over it, so a quick tap after landing turns the rod
+    // around the new pivot instead of swinging straight back.
     if (!s.armed && s.last >= 0) {
       pegPos(level, s.last, t1, tmpC);
-      if (dist2(tmpB.x, tmpB.y, tmpC.x, tmpC.y) > level.snap * level.snap) s.armed = true;
+      if (dist2(tmpB.x, tmpB.y, tmpC.x, tmpC.y) > level.arm * level.arm) s.armed = true;
     }
 
     // Sparks are gathered by any part of the rod.

@@ -54,6 +54,11 @@ export class Renderer {
   /** Per-peg reveal delay, radiating out from the start peg. */
   private introDelay: number[] = [];
   private moteClock = 0;
+  /**
+   * Visual size multiplier: keeps pegs and the rod legible when a wide level
+   * is drawn small on a phone. Purely cosmetic; collision radii are unchanged.
+   */
+  private u = 1;
   private wonAt = -1;
   private hitFlash = 0;
   private level: CompiledLevel | null = null;
@@ -62,6 +67,8 @@ export class Renderer {
   private frame: Rect = { x: 0, y: 0, w: 1, h: 1 };
   palette!: Palette;
   opts: RenderOptions = { reducedMotion: false };
+  /** When set (editor), the camera frames this rect instead of the level content. */
+  frameOverride: Rect | null = null;
   private seg: Segment = { x1: 0, y1: 0, x2: 0, y2: 0, r: 0 };
   private p = { x: 0, y: 0 };
   private q = { x: 0, y: 0 };
@@ -100,6 +107,11 @@ export class Renderer {
     this.introDelay = dists.map((d) => 0.1 + (d / maxD) * 0.55);
   }
 
+  /** Show the level fully formed immediately (editor). */
+  skipIntro(): void {
+    this.introAt = -1e9;
+  }
+
   /** 0..1 reveal progress for peg i (with a little overshoot). */
   private intro(i: number): number {
     if (this.opts.reducedMotion) return 1;
@@ -120,7 +132,7 @@ export class Renderer {
     this.canvas.style.width = `${cssW}px`;
     this.canvas.style.height = `${cssH}px`;
     this.particles.budget = coarse ? 120 : 220;
-    if (this.level) this.camera.fit(this.frame, this.level.rod, cssW, cssH, insets);
+    if (this.level) this.camera.fit(this.frameOverride ?? this.frame, this.level.rod, cssW, cssH, insets);
   }
 
   /** Called on sim events so effects line up with the moment they happen. */
@@ -194,6 +206,8 @@ export class Renderer {
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.camera.apply(ctx, this.dpr);
     const pxw = 1 / this.camera.scale; // one CSS pixel in world units
+    this.u = Math.min(1.7, Math.max(1, 0.78 / this.camera.scale));
+    const u = this.u;
 
     const tipX = px + level.rod * dcos(view.angle);
     const tipY = py + level.rod * dsin(view.angle);
@@ -236,24 +250,26 @@ export class Renderer {
         ctx.globalAlpha = 1;
         continue;
       }
-      ctx.globalAlpha = alpha;
-      if (playing && i !== view.pivot) {
+      // The previous peg is pass-through until it re-arms: draw it as a ghost.
+      const ghost = playing && i === s.last && !s.armed;
+      ctx.globalAlpha = ghost ? alpha * 0.45 : alpha;
+      if (playing && i !== view.pivot && !ghost) {
         const d = Math.hypot(x - px, y - py);
         if (Math.abs(d - level.rod) <= level.snap) {
           ctx.strokeStyle = pal.rod;
           ctx.globalAlpha = alpha * 0.75;
           ctx.lineWidth = 1.6;
           ctx.beginPath();
-          ctx.arc(x, y, PEG_R + 4.5, 0, TAU);
+          ctx.arc(x, y, (PEG_R + 4.5) * u, 0, TAU);
           ctx.stroke();
           ctx.globalAlpha = alpha;
         }
       }
       // Shadow, body, rim, then a glyph for special pegs.
-      const R = (peg.kind === 'normal' ? PEG_R : SPECIAL_R) * ik;
+      const R = (peg.kind === 'normal' ? PEG_R : SPECIAL_R) * ik * u;
       ctx.fillStyle = pal.pegShadow;
       ctx.beginPath();
-      ctx.arc(x, y + 2.2, R, 0, TAU);
+      ctx.arc(x, y + 2.2 * u, R, 0, TAU);
       ctx.fill();
       ctx.fillStyle = pal.peg;
       ctx.beginPath();
@@ -319,14 +335,14 @@ export class Renderer {
     ctx.globalAlpha = (1 - wonK * 0.6) * rodIn;
     ctx.strokeStyle = pal.rodGlow;
     ctx.globalAlpha *= 0.35;
-    ctx.lineWidth = ROD_RADIUS * 4.2;
+    ctx.lineWidth = ROD_RADIUS * 4.2 * u;
     this.line(px, py, tipX, tipY);
     ctx.globalAlpha = (1 - wonK * 0.6) * 0.6 * rodIn;
-    ctx.lineWidth = ROD_RADIUS * 2.4;
+    ctx.lineWidth = ROD_RADIUS * 2.4 * u;
     this.line(px, py, tipX, tipY);
     ctx.globalAlpha = (1 - wonK * 0.6) * rodIn;
     ctx.strokeStyle = pal.rod;
-    ctx.lineWidth = ROD_RADIUS * 1.25;
+    ctx.lineWidth = ROD_RADIUS * 1.25 * u;
     this.hitFlash = Math.max(0, this.hitFlash - frameSec * 1.6);
     if (view.mode === 'rewind' || this.hitFlash > 0) {
       // Warm the rod while the tape rewinds: a soft "oops", never an alarm.
@@ -340,19 +356,19 @@ export class Renderer {
       ctx.strokeStyle = pal.rod;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(px, py, PEG_R + 3.5, 0, TAU);
+      ctx.arc(px, py, (PEG_R + 3.5) * u, 0, TAU);
       ctx.stroke();
       // Direction hint: a small arc segment on the ring that leads the rotation.
       const a = (view.angle / TURN) * TAU;
       ctx.lineWidth = 2.6;
       ctx.strokeStyle = pal.rodGlow;
       ctx.beginPath();
-      if (s.dir === 1) ctx.arc(px, py, PEG_R + 7, a + 0.35, a + 1.15);
-      else ctx.arc(px, py, PEG_R + 7, a - 1.15, a - 0.35, false);
+      if (s.dir === 1) ctx.arc(px, py, (PEG_R + 7) * u, a + 0.35, a + 1.15);
+      else ctx.arc(px, py, (PEG_R + 7) * u, a - 1.15, a - 0.35, false);
       ctx.stroke();
       ctx.fillStyle = pal.rod;
       ctx.beginPath();
-      ctx.arc(tipX, tipY, ROD_RADIUS * 1.25, 0, TAU);
+      ctx.arc(tipX, tipY, ROD_RADIUS * 1.25 * u, 0, TAU);
       ctx.fill();
       if (view.mode === 'breath') {
         // Settling ring: fills while the rod takes a breath before moving again.
@@ -360,7 +376,7 @@ export class Renderer {
         ctx.globalAlpha = 0.8;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(px, py, PEG_R + 12, -Math.PI / 2, -Math.PI / 2 + TAU * view.breath);
+        ctx.arc(px, py, (PEG_R + 12) * u, -Math.PI / 2, -Math.PI / 2 + TAU * view.breath);
         ctx.stroke();
         ctx.globalAlpha = 1;
       }
@@ -397,7 +413,7 @@ export class Renderer {
   private drawGoal(x: number, y: number): void {
     const { ctx, palette: pal } = this;
     const bloom = this.wonAt >= 0 ? Math.min(1, (this.time - this.wonAt) / 0.8) : 0;
-    const R = GOAL_R * (1 + bloom * 0.3);
+    const R = GOAL_R * (1 + bloom * 0.3) * this.u;
     const glowR = R * (3.2 + bloom * 2.5);
     const g = ctx.createRadialGradient(x, y, R * 0.5, x, y, glowR);
     g.addColorStop(0, pal.goalGlow);
