@@ -60,8 +60,8 @@ export class Backdrop {
     for (let i = 0; i < 70; i++) {
       const c = el('circle', {
         cx: (r() * 1000).toFixed(1),
-        cy: (r() * r() * 520).toFixed(1),
-        r: (0.6 + r() * 1.3).toFixed(2),
+        cy: (r() * r() * 420).toFixed(1),
+        r: (0.45 + r() * r() * 1.1).toFixed(2),
         fill: '#fff',
       });
       c.style.animationDelay = `${(-r() * 6).toFixed(2)}s`;
@@ -128,6 +128,11 @@ export class Backdrop {
    * the sun sinks from level to level and is gone by blue hour.
    */
   setPalette(p: Palette, dusk: number): void {
+    if (!this.current) {
+      // First paint: apply colours instantly rather than fading in from defaults.
+      this.root.classList.add('instant');
+      requestAnimationFrame(() => requestAnimationFrame(() => this.root.classList.remove('instant')));
+    }
     if (this.current !== p) {
       const layer = document.createElement('div');
       layer.className = 'sky';

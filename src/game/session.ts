@@ -69,14 +69,23 @@ export class Session {
   private rewindDur = HIT_REWIND_MS;
   private rewindTarget: WorldState | null = null;
   private breathMs = 0;
+  private breathDur = BREATH_MS;
+  /** True during the intro hold; the clock does not run yet. */
+  private holding = false;
   /** A press during a rewind flips direction when play resumes. */
   private pendingFlip = false;
 
-  constructor(readonly level: CompiledLevel, private sink: EventSink) {
+  constructor(readonly level: CompiledLevel, private sink: EventSink, opts: { startDelayMs?: number } = {}) {
     this.state = initialState(level);
     this.prev = this.state;
     this.history = [this.state];
     this.tape = [this.state];
+    if (opts.startDelayMs) {
+      // Hold still while the level fades in; a tap during the hold sets the direction.
+      this.mode = 'breath';
+      this.breathDur = opts.startDelayMs;
+      this.holding = true;
+    }
   }
 
   /** Player pressed reverse. Applied on the next fixed tick. */
@@ -146,14 +155,15 @@ export class Session {
 
   /** Advance real-time animations (rewind, breath). Call once per frame. */
   frame(ms: number): void {
-    if (this.mode !== 'won') this.elapsedMs += ms;
+    if (this.mode !== 'won' && !this.holding) this.elapsedMs += ms;
     if (this.mode === 'rewind') {
       this.rewindMs += ms;
       if (this.rewindMs >= this.rewindDur) this.endRewind();
     } else if (this.mode === 'breath') {
       this.breathMs += ms;
-      if (this.breathMs >= BREATH_MS) {
+      if (this.breathMs >= this.breathDur) {
         this.mode = 'playing';
+        this.holding = false;
         this.sink({ type: 'resume' }, this.state);
       }
     }
@@ -170,12 +180,13 @@ export class Session {
     this.tape[this.tape.length - 1] = target;
     this.mode = 'breath';
     this.breathMs = 0;
+    this.breathDur = BREATH_MS;
     this.sink({ type: 'rewind-end' }, this.state);
   }
 
   /** Remaining time in the current breath pause, 0..1 (for the UI ring). */
   breathProgress(): number {
-    return this.mode === 'breath' ? Math.min(1, this.breathMs / BREATH_MS) : 1;
+    return this.mode === 'breath' ? Math.min(1, this.breathMs / this.breathDur) : 1;
   }
 
   canUndo(): boolean {

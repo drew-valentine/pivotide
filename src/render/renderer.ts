@@ -10,6 +10,7 @@ import type { Palette } from './palette';
 import { Particles } from './particles';
 
 export const PEG_R = 7;
+export const SPECIAL_R = 10.5;
 const GOAL_R = 11;
 const TAU = Math.PI * 2;
 /** Cap the backing store at roughly 4K worth of pixels. */
@@ -49,9 +50,15 @@ export class Renderer {
   private pegAlpha: number[] = [];
   private sparkAlpha: number[] = [];
   private time = 0;
+  private introAt = 0;
+  /** Per-peg reveal delay, radiating out from the start peg. */
+  private introDelay: number[] = [];
+  private moteClock = 0;
   private wonAt = -1;
   private hitFlash = 0;
   private level: CompiledLevel | null = null;
+  /** Portal pair number per peg (1-based), shown as dots so pairs read without colour. */
+  private portalGroup: number[] = [];
   private frame: Rect = { x: 0, y: 0, w: 1, h: 1 };
   palette!: Palette;
   opts: RenderOptions = { reducedMotion: false };
@@ -68,6 +75,15 @@ export class Renderer {
   setLevel(level: CompiledLevel, palette: Palette): void {
     this.level = level;
     this.frame = contentBounds(level);
+    this.portalGroup = level.pegs.map(() => 0);
+    let group = 0;
+    level.pegs.forEach((p, i) => {
+      if (p.kind === 'portal' && this.portalGroup[i] === 0) {
+        group++;
+        this.portalGroup[i] = group;
+        if (p.pair >= 0) this.portalGroup[p.pair] = group;
+      }
+    });
     this.palette = palette;
     this.trail = [];
     this.pulses = [];
@@ -76,6 +92,20 @@ export class Renderer {
     this.sparkAlpha = (level.def.sparks ?? []).map(() => 1);
     this.wonAt = -1;
     this.hitFlash = 0;
+    this.introAt = this.time;
+    const start = level.pegs.findIndex((p) => p.def.id === level.def.start.peg);
+    const sx = level.pegs[start].def.x, sy = level.pegs[start].def.y;
+    const dists = level.pegs.map((p) => Math.hypot(p.def.x - sx, p.def.y - sy));
+    const maxD = Math.max(1, ...dists);
+    this.introDelay = dists.map((d) => 0.1 + (d / maxD) * 0.55);
+  }
+
+  /** 0..1 reveal progress for peg i (with a little overshoot). */
+  private intro(i: number): number {
+    if (this.opts.reducedMotion) return 1;
+    const k = Math.min(1, Math.max(0, (this.time - this.introAt - this.introDelay[i]) / 0.45));
+    const c1 = 1.70158, c3 = c1 + 1;
+    return k === 0 ? 0 : 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2);
   }
 
   resize(cssW: number, cssH: number, insets: Insets): void {
@@ -183,6 +213,9 @@ export class Renderer {
       ctx.restore();
     }
 
+    // Rails for anything that moves, so motion is readable before it happens.
+    this.drawRails(level);
+
     // Hazards (drawn under pegs).
     this.drawHazards(level, t);
 
@@ -192,12 +225,15 @@ export class Renderer {
       const consumed = s.consumed.includes(i);
       const target = consumed ? 0 : 1;
       this.pegAlpha[i] += (target - this.pegAlpha[i]) * Math.min(1, frameSec * 5);
-      const alpha = this.pegAlpha[i];
-      if (alpha < 0.02) continue;
+      const ik = this.intro(i);
+      const alpha = this.pegAlpha[i] * Math.min(1, ik * 1.5);
+      if (alpha < 0.02 || ik <= 0) continue;
       pegPos(level, i, t, this.q);
       const x = this.q.x, y = this.q.y;
       if (peg.kind === 'goal') {
+        ctx.globalAlpha = Math.min(1, ik);
         this.drawGoal(x, y);
+        ctx.globalAlpha = 1;
         continue;
       }
       ctx.globalAlpha = alpha;
@@ -213,18 +249,24 @@ export class Renderer {
           ctx.globalAlpha = alpha;
         }
       }
-      // Shadow, body, rim.
+      // Shadow, body, rim, then a glyph for special pegs.
+      const R = (peg.kind === 'normal' ? PEG_R : SPECIAL_R) * ik;
       ctx.fillStyle = pal.pegShadow;
       ctx.beginPath();
-      ctx.arc(x, y + 2.2, PEG_R, 0, TAU);
+      ctx.arc(x, y + 2.2, R, 0, TAU);
       ctx.fill();
       ctx.fillStyle = pal.peg;
       ctx.beginPath();
-      ctx.arc(x, y, PEG_R, 0, TAU);
+      ctx.arc(x, y, R, 0, TAU);
       ctx.fill();
       ctx.strokeStyle = pal.pegEdge;
       ctx.lineWidth = 1.6;
-      ctx.stroke();
+      if (peg.kind === 'once') {
+        ctx.setLineDash([2.6, 2.4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else ctx.stroke();
+      if (peg.kind !== 'normal' && ik > 0.85) this.drawGlyph(peg.kind, x, y, R, i, s.dir);
       ctx.globalAlpha = 1;
     }
 
@@ -240,7 +282,17 @@ export class Renderer {
     // Trail of the free end.
     {
       const maxAge = this.opts.reducedMotion ? 0.12 : 0.34;
-      if (playing && view.mode === 'playing') this.trail.push({ x: tipX, y: tipY, age: 0, brk: false });
+      if (playing && view.mode === 'playing') {
+        this.trail.push({ x: tipX, y: tipY, age: 0, brk: false });
+        // A light sprinkle of motes shed from the free end.
+        if (!this.opts.reducedMotion) {
+          this.moteClock += frameSec;
+          while (this.moteClock > 0.07) {
+            this.moteClock -= 0.07;
+            this.particles.burst(tipX, tipY, pal.mote, 1, 16);
+          }
+        }
+      }
       for (const tp of this.trail) tp.age += frameSec;
       while (this.trail.length && this.trail[0].age > maxAge) this.trail.shift();
       ctx.lineCap = 'round';
@@ -262,16 +314,17 @@ export class Renderer {
     // Rod: soft glow layers, then a crisp core.
     const won = s.status === 'won';
     const wonK = won && this.wonAt >= 0 ? Math.min(1, (this.time - this.wonAt) / 0.6) : 0;
+    const rodIn = this.opts.reducedMotion ? 1 : Math.min(1, Math.max(0, (this.time - this.introAt - 0.05) / 0.4));
     ctx.lineCap = 'round';
-    ctx.globalAlpha = 1 - wonK * 0.6;
+    ctx.globalAlpha = (1 - wonK * 0.6) * rodIn;
     ctx.strokeStyle = pal.rodGlow;
     ctx.globalAlpha *= 0.35;
     ctx.lineWidth = ROD_RADIUS * 4.2;
     this.line(px, py, tipX, tipY);
-    ctx.globalAlpha = (1 - wonK * 0.6) * 0.6;
+    ctx.globalAlpha = (1 - wonK * 0.6) * 0.6 * rodIn;
     ctx.lineWidth = ROD_RADIUS * 2.4;
     this.line(px, py, tipX, tipY);
-    ctx.globalAlpha = 1 - wonK * 0.6;
+    ctx.globalAlpha = (1 - wonK * 0.6) * rodIn;
     ctx.strokeStyle = pal.rod;
     ctx.lineWidth = ROD_RADIUS * 1.25;
     this.hitFlash = Math.max(0, this.hitFlash - frameSec * 1.6);
@@ -377,6 +430,104 @@ export class Renderer {
     ctx.strokeStyle = pal.peg;
     ctx.lineWidth = 2;
     ctx.stroke();
+  }
+
+  private drawGlyph(kind: string, x: number, y: number, R: number, i: number, dir: number): void {
+    const { ctx, palette: pal } = this;
+    ctx.strokeStyle = pal.pegEdge;
+    ctx.fillStyle = pal.pegEdge;
+    ctx.lineWidth = 1.8;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const g = R * 0.5;
+    switch (kind) {
+      case 'fast': {
+        // Double chevron.
+        for (const off of [-g * 0.55, g * 0.45]) {
+          ctx.beginPath();
+          ctx.moveTo(x + off - g * 0.35, y - g * 0.7);
+          ctx.lineTo(x + off + g * 0.35, y);
+          ctx.lineTo(x + off - g * 0.35, y + g * 0.7);
+          ctx.stroke();
+        }
+        break;
+      }
+      case 'slow': {
+        // Two soft waves.
+        for (const off of [-g * 0.4, g * 0.4]) {
+          ctx.beginPath();
+          ctx.moveTo(x - g, y + off);
+          ctx.bezierCurveTo(x - g * 0.4, y + off - g * 0.5, x + g * 0.4, y + off + g * 0.5, x + g, y + off);
+          ctx.stroke();
+        }
+        break;
+      }
+      case 'reverse': {
+        // Two opposing half-arcs with arrowheads.
+        const r = g * 0.95;
+        for (const a0 of [Math.PI * 0.15, Math.PI * 1.15]) {
+          ctx.beginPath();
+          ctx.arc(x, y, r, a0, a0 + Math.PI * 0.7);
+          ctx.stroke();
+          const a1 = a0 + Math.PI * 0.7;
+          const hx = x + Math.cos(a1) * r, hy = y + Math.sin(a1) * r;
+          const tx = -Math.sin(a1), ty = Math.cos(a1);
+          ctx.beginPath();
+          ctx.moveTo(hx + tx * 2.4 - Math.cos(a1) * 1.6, hy + ty * 2.4 - Math.sin(a1) * 1.6);
+          ctx.lineTo(hx, hy);
+          ctx.lineTo(hx + tx * 2.4 + Math.cos(a1) * 1.6, hy + ty * 2.4 + Math.sin(a1) * 1.6);
+          ctx.stroke();
+        }
+        break;
+      }
+      case 'once': {
+        ctx.beginPath();
+        ctx.arc(x, y, g * 0.45, 0, TAU);
+        ctx.fill();
+        break;
+      }
+      case 'portal': {
+        // Turning spiral arms and pair dots in the middle.
+        const rot = this.opts.reducedMotion ? 0 : this.time * 1.4 * dir;
+        ctx.strokeStyle = pal.pegEdge;
+        ctx.globalAlpha *= 0.8;
+        ctx.lineWidth = 1.8;
+        for (let k = 0; k < 3; k++) {
+          const a = rot + (k / 3) * TAU;
+          ctx.beginPath();
+          ctx.arc(x, y, R + 3.5, a, a + 1.1);
+          ctx.stroke();
+        }
+        ctx.fillStyle = pal.pegEdge;
+        const n = Math.min(3, this.portalGroup[i] || 1);
+        for (let k = 0; k < n; k++) {
+          const ox = (k - (n - 1) / 2) * 3.4;
+          ctx.beginPath();
+          ctx.arc(x + ox, y, 1.3, 0, TAU);
+          ctx.fill();
+        }
+        break;
+      }
+    }
+  }
+
+  private drawRails(level: CompiledLevel): void {
+    const { ctx, palette: pal } = this;
+    ctx.save();
+    ctx.strokeStyle = pal.pegEdge;
+    ctx.globalAlpha = 0.28;
+    ctx.lineWidth = 1.4;
+    ctx.lineCap = 'round';
+    ctx.setLineDash([0.01, 6]);
+    const paths = [...level.pegs.map((p) => p.path), ...level.hazards.map((h) => h.path)];
+    for (const p of paths) {
+      if (!p) continue;
+      ctx.beginPath();
+      if (p.def.type === 'circle') ctx.arc(p.def.cx, p.def.cy, p.def.r, 0, TAU);
+      else p.pts.forEach(([x, y], k) => (k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   private drawSpark(x: number, y: number, alpha: number, k: number): void {
