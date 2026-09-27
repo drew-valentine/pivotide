@@ -61,6 +61,8 @@ export class Game {
   private insets: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
   private probe: HTMLElement;
   private lastStats = '';
+  /** Extra camera insets as fractions of the viewport (title-screen framing). */
+  private frameBand: { top: number; bottom: number; left?: number; right?: number } | null = null;
 
   constructor(private stage: HTMLElement, private ui: HTMLElement, public hooks: GameHooks = {}) {
     this.backdrop = new Backdrop(stage);
@@ -116,36 +118,68 @@ export class Game {
     const cs = getComputedStyle(this.probe);
     const w = this.stage.clientWidth;
     const hgt = this.stage.clientHeight;
-    this.insets = {
-      top: parseFloat(cs.paddingTop) + 72,
-      right: parseFloat(cs.paddingRight),
-      bottom: parseFloat(cs.paddingBottom) + 64,
-      left: parseFloat(cs.paddingLeft),
-    };
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1;
+    // Landscape phones: the HUD sits in the corners, so let the level use the full height.
+    const landscape = w > hgt * 1.25 && hgt < 560;
+    this.insets = this.frameBand
+      ? {
+          top: parseFloat(cs.paddingTop) + hgt * this.frameBand.top,
+          right: parseFloat(cs.paddingRight) + w * (this.frameBand.right ?? 0),
+          bottom: parseFloat(cs.paddingBottom) + hgt * this.frameBand.bottom,
+          left: parseFloat(cs.paddingLeft) + w * (this.frameBand.left ?? 0),
+        }
+      : landscape
+        ? {
+            top: parseFloat(cs.paddingTop) + 12,
+            right: parseFloat(cs.paddingRight) + 76 * rem,
+            bottom: parseFloat(cs.paddingBottom) + 12,
+            left: parseFloat(cs.paddingLeft) + 76 * rem,
+          }
+        : {
+            top: parseFloat(cs.paddingTop) + 72 * rem,
+            right: parseFloat(cs.paddingRight),
+            bottom: parseFloat(cs.paddingBottom) + 64 * rem,
+            left: parseFloat(cs.paddingLeft),
+          };
     this.renderer.resize(w, hgt, this.insets);
   }
 
   load(def: LevelDef, opts: LoadOptions): void {
     const level = compileLevel(def);
     this.level = level;
-    this.palette = paletteFor(def.world);
-    this.backdrop.setPalette(this.palette, opts.dusk);
-    const root = document.documentElement.style;
-    root.setProperty('--ink', this.palette.ink);
-    root.setProperty('--ink-soft', this.palette.inkSoft);
-    root.setProperty('--panel', this.palette.panel);
-    document.documentElement.dataset.world = String(def.world);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', this.palette.sky[0][1]);
+    this.applyTheme(def.world, opts.dusk);
     this.titleEyebrow.textContent = opts.eyebrow;
     this.titleName.textContent = def.name;
     this.startSession();
     this.showHint(opts.quiet ? undefined : def.hint);
   }
 
+  /** Sky, dunes, UI ink and browser chrome colour for a world. */
+  applyTheme(world: number, dusk: number): void {
+    this.palette = paletteFor(world);
+    this.backdrop.setPalette(this.palette, dusk);
+    const root = document.documentElement.style;
+    root.setProperty('--ink', this.palette.ink);
+    root.setProperty('--ink-soft', this.palette.inkSoft);
+    root.setProperty('--panel', this.palette.panel);
+    document.documentElement.dataset.world = String(world);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', this.palette.sky[0][1]);
+  }
+
+  hideHint(): void {
+    this.showHint(undefined);
+  }
+
   setHudVisible(v: boolean): void {
     this.hud.classList.toggle('hidden', !v);
     this.undoBtn.classList.toggle('hidden', !v);
     if (!v) this.showHint(undefined);
+  }
+
+  /** Frame the level inside a horizontal band (fractions of height), or null for normal play. */
+  setFrameBand(band: { top: number; bottom: number; left?: number; right?: number } | null): void {
+    this.frameBand = band;
+    this.resize();
   }
 
   setStatsVisible(v: boolean): void {
@@ -172,6 +206,13 @@ export class Game {
     this.renderer.setLevel(level, this.palette);
     this.resize();
     this.loop.resetClock();
+    this.closeOverlay();
+  }
+
+  /** Drop the current session (nothing ticks or draws until the next load). */
+  clear(): void {
+    clearTimeout(this.winTimer);
+    this.session = null;
     this.closeOverlay();
   }
 
@@ -206,6 +247,7 @@ export class Game {
         this.renderer.breakTrail();
         break;
       case 'won':
+        this.hideHint();
         this.renderer.onWon(e.peg, t);
         if (this.onSessionWon) this.onSessionWon();
         else this.winTimer = window.setTimeout(() => this.showWin(), 950);
@@ -274,7 +316,11 @@ export class Game {
 
   private frame(alpha: number, ms: number): void {
     const s = this.session;
-    if (!s) return;
+    if (!s) {
+      this.renderer.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      this.renderer.ctx.clearRect(0, 0, this.renderer.canvas.width, this.renderer.canvas.height);
+      return;
+    }
     if (!this.loop.paused) s.frame(ms);
     this.renderer.draw(s.view(alpha), ms / 1000);
     this.undoBtn.disabled = !s.canUndo();

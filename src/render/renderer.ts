@@ -530,9 +530,8 @@ export class Renderer {
   private drawRails(level: CompiledLevel): void {
     const { ctx, palette: pal } = this;
     ctx.save();
-    ctx.strokeStyle = pal.pegEdge;
-    ctx.globalAlpha = 0.28;
-    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = pal.rail;
+    ctx.lineWidth = 1.8;
     ctx.lineCap = 'round';
     ctx.setLineDash([0.01, 6]);
     const paths = [...level.pegs.map((p) => p.path), ...level.hazards.map((h) => h.path)];

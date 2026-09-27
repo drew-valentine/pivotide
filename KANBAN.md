@@ -27,45 +27,38 @@ Decisions (2026-09-27):
 
 ## Backlog
 
-### M5 Shell, accessibility, deploy
-Note: settings and progress storage (src/storage/save.ts) and the haptics toggle landed early in M3. The Settings and localStorage save cards still need their UI and full AC checked.
-- [ ] Menus and level select | P1 | M | unassigned
-  - AC: title, world and level select showing stars, sparks and locks; pause menu with restart and quit.
-- [ ] Settings | P2 | S | unassigned
-  - AC: volume, mute, reduced motion, colorblind and haptics options, all persisted.
-- [ ] localStorage save | P1 | S | unassigned
-  - AC: progress, stars, sparks and settings survive reload; a corrupt or missing save falls back to defaults.
-- [ ] Reduced motion | P2 | S | unassigned
-  - AC: honors `prefers-reduced-motion` and the setting; disables particles, screen shake and camera easing.
-- [ ] Colorblind-safe hazard shapes | P2 | S | unassigned
-  - AC: every hazard and special peg type is identifiable by shape alone.
-- [ ] Scaling from phone portrait to 4K | P1 | M | unassigned
-  - AC: canvas sized by devicePixelRatio (capped per "Mobile shell basics"); layout usable at 360x740 portrait and sharp at 3840x2160.
-- [ ] PWA manifest + theme color (add to home screen) | P2 | S | unassigned
-  - AC: web app manifest with name, icons and `display: standalone`; `theme-color` meta matches the sky palette; the game can be added to the home screen on iOS and Android and launches full screen.
-- [ ] Mobile verification pass | P1 | M | unassigned
-  - AC: using browser automation, the game and menus are checked at 390x844 and 360x740 portrait, a landscape phone, a tablet, desktop and 4K.
-  - AC: at each size the whole level is visible, HUD buttons clear the safe area, taps reverse without zooming or scrolling, and text is legible; defects become cards.
-- [ ] GitHub Pages deploy workflow | P1 | S | unassigned
-  - AC: Actions workflow builds and publishes on push to main; Vite `base` matches the repo path; game and /editor both load on the live URL.
-  - AC: CI uses Node 22 (Vite 8 wants 20.19+; local Node 20.18 only warns).
-- [ ] M5 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | unassigned
-
 ## Ready
 
 ## In Progress
 
-### M4 Editor and levels
-Branch m4-editor-levels, started 2026-09-27. Local Node is 20.18; Vite 8 warns it wants 20.19+, which is harmless locally.
-- [ ] Level editor at /editor | P1 | L | Started: 2026-09-27 | Owner: @builder | Branch: m4-editor-levels
-  - AC: place, drag and delete pegs and hazards; draw orb paths and rails; test-play from the editor; import and export level JSON that the game loads unchanged.
-- [ ] 30 levels across 3 worlds in /levels | P1 | XL | Started: 2026-09-27 | Owner: @builder | Branch: m4-editor-levels
-  - AC: 10 levels per world stored as JSON; each is completable and has a par set by playtest; difficulty rises within each world.
-  - AC: all 30 levels fit portrait-friendly bounds (aspect between about 9:16 and 1:1), so none needs follow mode on a phone.
-  - AC: Blue Hour hazards stay readable against the dark sky (see M3 concern).
-- [ ] Teaching levels with hints | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m4-editor-levels
-  - AC: the first 3 levels each introduce one idea with a one-line hint shown in play.
-- [ ] M4 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m4-editor-levels
+### M5 Shell, accessibility, deploy
+Branch m5-shell, started 2026-09-27. Settings and progress storage (src/storage/save.ts) and the haptics toggle landed early in M3; the Settings and save cards still need their UI and full AC checked.
+Drafted so far: app shell (title screen with an attract-mode demo, level select, pause, settings), PWA manifest and icons, and the GitHub Pages workflow (Node 22, BASE_PATH taken from the repo name).
+- [ ] Menus and level select | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: title, world and level select showing stars, sparks and locks; pause menu with restart and quit.
+  - Drafted: title with attract-mode demo, level select, pause.
+- [ ] Settings | P2 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: volume, mute, reduced motion, colorblind and haptics options, all persisted.
+  - Drafted: settings screen.
+- [ ] localStorage save | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: progress, stars, sparks and settings survive reload; a corrupt or missing save falls back to defaults.
+- [ ] Reduced motion | P2 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: honors `prefers-reduced-motion` and the setting; disables particles, screen shake and camera easing.
+- [ ] Colorblind-safe hazard shapes | P2 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: every hazard and special peg type is identifiable by shape alone.
+- [ ] Scaling from phone portrait to 4K | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: canvas sized by devicePixelRatio (capped per "Mobile shell basics"); layout usable at 360x740 portrait and sharp at 3840x2160.
+- [ ] PWA manifest + theme color (add to home screen) | P2 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: web app manifest with name, icons and `display: standalone`; `theme-color` meta matches the sky palette; the game can be added to the home screen on iOS and Android and launches full screen.
+  - Drafted: manifest and icons.
+- [ ] Mobile verification pass | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: using browser automation, the game and menus are checked at 390x844 and 360x740 portrait, a landscape phone, a tablet, desktop and 4K.
+  - AC: at each size the whole level is visible, HUD buttons clear the safe area, taps reverse without zooming or scrolling, and text is legible; defects become cards.
+- [ ] GitHub Pages deploy workflow | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
+  - AC: Actions workflow builds and publishes on push to main; Vite `base` matches the repo path; game and /editor both load on the live URL.
+  - AC: CI uses Node 22 (Vite 8 wants 20.19+; local Node 20.18 only warns).
+  - Drafted: workflow on Node 22 with BASE_PATH from the repo name; not yet verified on the live URL.
+- [ ] M5 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | Started: 2026-09-27 | Owner: @builder | Branch: m5-shell
 
 ## Review
 
@@ -170,3 +163,23 @@ Branch m4-editor-levels, started 2026-09-27. Local Node is 20.18; Vite 8 warns i
   - Settings and progress storage (src/storage/save.ts) landed early; haptics can be toggled.
   - Concern: the audio mix was verified headless only. The user should listen for balance.
   - Concern: Blue Hour hazards are dark on dark and rely on their light edge lines to read.
+
+### M4 Editor and levels
+- [x] Level editor at /editor | P1 | L | Completed: 2026-09-27 | Owner: @builder | Branch: m4-editor-levels
+  - AC: place, drag and delete pegs and hazards; draw orb paths and rails; test-play from the editor; import and export level JSON that the game loads unchanged.
+- [x] 30 levels across 3 worlds in /levels | P1 | XL | Completed: 2026-09-27 | Owner: @builder | Branch: m4-editor-levels
+  - AC: 10 levels per world stored as JSON; each is completable and has a par set by playtest; difficulty rises within each world.
+  - AC: all 30 levels fit portrait-friendly bounds (aspect between about 9:16 and 1:1), so none needs follow mode on a phone.
+  - AC: Blue Hour hazards stay readable against the dark sky (see M3 concern).
+- [x] Teaching levels with hints | P1 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m4-editor-levels
+  - AC: the first 3 levels each introduce one idea with a one-line hint shown in play.
+- [x] M4 wrap-up: run tests + build, summarize, list gameplay concerns | P1 | S | Completed: 2026-09-27 | Owner: @builder | Branch: m4-editor-levels
+  - Merged to main and tagged v0.4.0 on 2026-09-27.
+  - 242 Vitest tests pass. Each of the 30 levels stores a reference solution and a spark run. Tests replay both to prove the level is solvable, and check that idling never wins, par is consistent, and the level fits a phone.
+  - Editor at /editor solves in a Web Worker, test-plays in place, and saves a winning run as the level's solution. It also has lattice snapping, rails, orbits, undo, and import/export.
+  - Mechanic change: after a landing, the previous peg is pass-through for about 36 degrees and is drawn ghosted. A quick tap turns the rod around its new pivot; a later tap swings back. Analysis showed that with instant re-arming, taps could never create route choices, because the rotation rule is invertible.
+  - Tooling: scripts/design.ts searches hand-authored level skeletons for start poses and optional pieces that meet move and pace targets. scripts/solve.ts and scripts/tune.ts support design.
+  - Concern: many levels need only 1 to 4 taps, so difficulty comes more from timing and hazards than from long routes.
+  - Concern: some late levels are easier than their position suggests; w3-06 and w3-07 each need 1 move.
+  - Concern: layouts are fairly uniform hex patches.
+  - Concern: par values come from the solver and have not been tuned by human play.

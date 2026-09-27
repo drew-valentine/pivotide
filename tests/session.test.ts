@@ -75,7 +75,7 @@ describe('session input log', () => {
   it('a won run with rewinds and undos replays to the same win', async () => {
     const { runReplay } = await import('../src/sim/replay');
     const { compileLevel } = await import('../src/sim/level');
-    const def = (await import('../levels/test/m2.json')).default;
+    const def = (await import('./fixtures/m2.json')).default;
     const lv = compileLevel(def as never);
     const s = new Session(lv, () => {}, { startDelayMs: 800 });
     // Play: hold, then press a few times, get hit, undo, and finish with the known solution.
