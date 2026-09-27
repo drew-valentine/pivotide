@@ -36,6 +36,8 @@ export interface CompiledLevel {
   def: LevelDef;
   rod: number;
   snap: number;
+  /** Free-end distance from the previous pivot at which it becomes capturable again. */
+  arm: number;
   pegs: CompiledPeg[];
   hazards: CompiledHazard[];
   /** Substeps per tick, chosen so nothing moves more than half the thinnest gap per substep. */
@@ -48,6 +50,7 @@ export class LevelError extends Error {}
 const DEFAULT_ROD = 100;
 const DEFAULT_SPEED = 0.42;
 const DEFAULT_SNAP = 14;
+export const ARM_FRACTION = 0.62;
 
 export function compileLevel(def: LevelDef): CompiledLevel {
   const rod = def.rod ?? DEFAULT_ROD;
@@ -100,7 +103,9 @@ export function compileLevel(def: LevelDef): CompiledLevel {
   }
   const substeps = minR === Infinity ? 1 : Math.min(16, Math.max(1, Math.ceil(maxTravel / (minR * 0.5))));
 
-  return { def, rod, snap, pegs, hazards, substeps, goal };
+  // ~36 degrees of sweep: a relaxed window for the "turn around" tap.
+  const arm = Math.max(snap, def.arm ?? rod * ARM_FRACTION);
+  return { def, rod, snap, arm, pegs, hazards, substeps, goal };
 }
 
 export function degToUnits(deg: number): number {

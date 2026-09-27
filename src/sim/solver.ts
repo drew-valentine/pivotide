@@ -19,7 +19,7 @@ export interface Solution {
 }
 
 export interface SolveOptions {
-  /** Tick spacing between candidate press moments (default 3). */
+  /** Tick spacing between candidate press moments (default 5). */
   sample?: number;
   /** Stop after this many expanded nodes (default 6000). */
   maxNodes?: number;
@@ -27,6 +27,12 @@ export interface SolveOptions {
   allSparks?: boolean;
   /** Give up after this much wall time (default: no limit). */
   timeLimitMs?: number;
+  /** Ignore presses before this tick (design tool: rule out "flip at start" answers). */
+  earliest?: number;
+  /** Minimum ticks between presses, to keep solutions humanly playable (default 20). */
+  minGap?: number;
+  /** Called for every expanded node (design tooling: which pegs are reachable). */
+  onVisit?: (s: WorldState) => void;
 }
 
 interface Node {
@@ -57,12 +63,12 @@ function keyOf(s: WorldState, period: number): string {
   const a = Math.round((((s.angle % TURN) + TURN) % TURN) / 4096);
   // Moving scenery makes time part of the state; fold it into the motion cycle
   // and bucket it to keep the search finite.
-  const t = period ? `|${Math.floor((s.tick % period) / 10)}` : '';
+  const t = period ? `|${Math.floor((s.tick % period) / 24)}` : '';
   return `${s.pivot}|${s.last}|${s.armed ? 1 : 0}|${s.dir}|${a}|${s.consumed.join(',')}|${s.sparks.join(',')}${t}`;
 }
 
 export function solve(level: CompiledLevel, opts: SolveOptions = {}): Solution | null {
-  const sample = opts.sample ?? 3;
+  const sample = opts.sample ?? 5;
   const maxNodes = opts.maxNodes ?? 6000;
   const nSparks = level.def.sparks?.length ?? 0;
   const dynamic = cyclePeriod(level);
@@ -91,6 +97,7 @@ export function solve(level: CompiledLevel, opts: SolveOptions = {}): Solution |
     }
     const node = layer[qi++];
     expanded++;
+    opts.onVisit?.(node.state);
 
     // Walk the no-press path until the next landing, recording states.
     const trail: WorldState[] = [node.state];
@@ -129,9 +136,13 @@ export function solve(level: CompiledLevel, opts: SolveOptions = {}): Solution |
 
     // Branch: press at sampled points before the landing (or before a hit).
     const limit = trail.length - 1;
+    const minGap = opts.minGap ?? 20;
+    const lastPress = node.presses.length ? node.presses[node.presses.length - 1] : -Infinity;
     for (let d = 0; d < limit; d += sample) {
       const base = trail[d];
       if (base.status !== 'playing') break;
+      if (opts.earliest && base.tick < opts.earliest) continue;
+      if (base.tick - lastPress < minGap) continue;
       const pressTick = base.tick;
       const first = step(level, base, true);
       let st = first.state;

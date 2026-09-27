@@ -4,6 +4,6 @@ exports[`determinism > matches the committed golden trace (update deliberately i
 {
   "status": "playing",
   "tick": 1500,
-  "trace": "963ff74d",
+  "trace": "56732c7e",
 }
 `;

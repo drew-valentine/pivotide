@@ -44,25 +44,26 @@ describe('pivot transfer', () => {
     expect(s.angle).toBeGreaterThan(before);
   });
 
-  it('does not recapture the old pivot while the tip is still on it (re-arm rule)', () => {
+  it('a quick reversal after landing passes over the old pivot (turn-around tap)', () => {
     let s = runUntil(level, initialState(level), (s) => s.pivot === 1);
     expect(s.armed).toBe(false);
-    for (let i = 0; i < 20; i++) s = step(level, s, false).state;
+    s = step(level, s, true).state; // reverse immediately
+    for (let i = 0; i < 40; i++) s = step(level, s, false).state;
     expect(s.pivot).toBe(1);
-    expect(s.armed).toBe(true);
   });
 
-  it('reversing right after landing swings straight back onto the old pivot', () => {
+  it('the old pivot re-arms after about a tenth of a turn', () => {
     let s = runUntil(level, initialState(level), (s) => s.pivot === 1);
-    s = step(level, s, true).state;
-    s = runUntil(level, s, (st) => st.pivot !== 1, 10);
-    expect(s.pivot).toBe(0);
+    for (let i = 0; i < 20; i++) s = step(level, s, false).state;
+    expect(s.armed).toBe(false);
+    for (let i = 0; i < 20; i++) s = step(level, s, false).state;
+    expect(s.armed).toBe(true);
   });
 
   it('reversing after leaving the old pivot swings back onto it', () => {
     let s = runUntil(level, initialState(level), (s) => s.pivot === 1);
-    // Swing about 30 degrees away, then reverse.
-    for (let i = 0; i < 24; i++) s = step(level, s, false).state;
+    // Swing about 50 degrees away, then reverse.
+    for (let i = 0; i < 40; i++) s = step(level, s, false).state;
     expect(s.armed).toBe(true);
     s = step(level, s, true).state;
     s = runUntil(level, s, (s) => s.pivot !== 1, 200);

@@ -126,10 +126,6 @@ export function step(level: CompiledLevel, input: WorldState, reverse: boolean):
 
   if (reverse) {
     s.dir = s.dir === 1 ? -1 : 1;
-    // Reversing always swings back toward the previous peg, so re-arm it now.
-    // Without this, a reversal inside the first few frames after a landing
-    // would skip the old peg: a frame-perfect trick no human can rely on.
-    s.armed = true;
     events.push({ type: 'reverse', dir: s.dir });
   }
 
@@ -190,10 +186,12 @@ export function step(level: CompiledLevel, input: WorldState, reverse: boolean):
     pegPos(level, s.pivot, t1, tmpA);
     rodTip(tmpA.x, tmpA.y, s.angle, L, tmpB);
 
-    // Re-arm the previous pivot once the free end has left its snap radius.
+    // Re-arm the previous pivot once the free end is far enough from it. Until
+    // then the rod passes over it, so a quick tap after landing turns the rod
+    // around the new pivot instead of swinging straight back.
     if (!s.armed && s.last >= 0) {
       pegPos(level, s.last, t1, tmpC);
-      if (dist2(tmpB.x, tmpB.y, tmpC.x, tmpC.y) > level.snap * level.snap) s.armed = true;
+      if (dist2(tmpB.x, tmpB.y, tmpC.x, tmpC.y) > level.arm * level.arm) s.armed = true;
     }
 
     // Sparks are gathered by any part of the rod.
