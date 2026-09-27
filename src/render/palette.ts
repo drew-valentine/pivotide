@@ -18,6 +18,8 @@ export interface Palette {
   pegEdge: string;
   pegShadow: string;
   reach: string;
+  /** Dotted rails and orbits for moving pieces. */
+  rail: string;
   goal: string;
   goalGlow: string;
   spark: string;
@@ -49,6 +51,7 @@ export const PALETTES: Palette[] = [
     pegEdge: '#8a5448',
     pegShadow: 'rgba(122, 64, 52, 0.22)',
     reach: 'rgba(80, 160, 185, 0.55)',
+    rail: 'rgba(138, 84, 72, 0.4)',
     goal: '#8fdcd6',
     goalGlow: 'rgba(90, 200, 205, 0.45)',
     spark: '#ffffff',
@@ -78,6 +81,7 @@ export const PALETTES: Palette[] = [
     pegEdge: '#5d3f66',
     pegShadow: 'rgba(60, 36, 72, 0.25)',
     reach: 'rgba(150, 240, 210, 0.42)',
+    rail: 'rgba(93, 63, 102, 0.42)',
     goal: '#9fe8d4',
     goalGlow: 'rgba(120, 230, 200, 0.45)',
     spark: '#ffffff',
@@ -108,6 +112,7 @@ export const PALETTES: Palette[] = [
     pegEdge: '#0f1a2e',
     pegShadow: 'rgba(0, 0, 0, 0.3)',
     reach: 'rgba(180, 210, 255, 0.34)',
+    rail: 'rgba(200, 222, 255, 0.4)',
     goal: '#8fe0e8',
     goalGlow: 'rgba(120, 210, 240, 0.5)',
     spark: '#ffffff',

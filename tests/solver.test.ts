@@ -3,7 +3,7 @@ import { compileLevel } from '../src/sim/level';
 import { runReplay } from '../src/sim/replay';
 import { solve } from '../src/sim/solver';
 import type { LevelDef } from '../src/sim/types';
-import m1 from '../levels/test/m1.json';
+import m1 from './fixtures/m1.json';
 import { makeLevel } from './helpers';
 
 describe('solver', () => {

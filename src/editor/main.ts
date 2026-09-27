@@ -16,7 +16,7 @@ import { Game } from '../game/game';
 import { h } from '../ui/dom';
 import { dcos, dsin } from '../sim/fixed';
 
-const shipped = import.meta.glob<LevelDef>('../../levels/**/*.json', { eager: true, import: 'default' });
+const shipped = import.meta.glob<LevelDef>('../../levels/w*/*.json', { eager: true, import: 'default' });
 const DRAFT_KEY = 'pivotide.editor.draft';
 
 // ---------------------------------------------------------------- state
