@@ -70,3 +70,29 @@ describe('session: rewind, undo, stars', () => {
     expect(starsFor(level, 999999, 999).total).toBe(1);
   });
 });
+
+describe('session input log', () => {
+  it('a won run with rewinds and undos replays to the same win', async () => {
+    const { runReplay } = await import('../src/sim/replay');
+    const { compileLevel } = await import('../src/sim/level');
+    const def = (await import('../levels/test/m2.json')).default;
+    const lv = compileLevel(def as never);
+    const s = new Session(lv, () => {}, { startDelayMs: 800 });
+    // Play: hold, then press a few times, get hit, undo, and finish with the known solution.
+    s.frame(900);
+    let tick = 0;
+    const plan = new Map<number, () => void>([[30, () => s.press()], [60, () => s.undo()]]);
+    let guard = 0;
+    while (guard++ < 20000 && s.mode !== 'won') {
+      if (s.mode === 'playing') {
+        plan.get(tick)?.();
+        s.tick();
+        tick++;
+      } else s.frame(50);
+      if (tick === 200) break;
+    }
+    // Whatever happened, the log must reproduce the current state exactly.
+    const r = runReplay(lv, s.solution(), s.state.tick);
+    expect(r.state).toEqual(s.state);
+  });
+});

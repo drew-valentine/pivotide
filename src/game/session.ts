@@ -59,6 +59,11 @@ export class Session {
   script: Set<number> | null = null;
 
   private queued = 0;
+  /**
+   * Ticks at which reverse was applied along the current timeline. Rewinds
+   * trim it, so after a win it replays the exact run (see runReplay).
+   */
+  private inputLog: number[] = [];
   /** Landing snapshots; [0] is the level start. */
   private history: WorldState[];
   /** Every tick's state since the landing before the current one. */
@@ -94,6 +99,7 @@ export class Session {
     this.moves++;
     if (this.mode === 'playing') this.queued++;
     else if (this.mode === 'breath') {
+      this.logInput(this.state.tick);
       this.state = { ...this.state, dir: this.state.dir === 1 ? -1 : 1 };
       this.prev = this.state;
       this.sink({ type: 'reverse', dir: this.state.dir }, this.state);
@@ -113,6 +119,7 @@ export class Session {
     let reverse = this.queued > 0;
     if (reverse) this.queued--;
     if (this.script?.has(this.state.tick)) reverse = !reverse;
+    if (reverse) this.logInput(this.state.tick);
     const r = step(this.level, this.state, reverse);
     this.state = r.state;
     this.tape.push(this.state);
@@ -126,6 +133,17 @@ export class Session {
     } else if (this.state.status === 'won') {
       this.mode = 'won';
     }
+  }
+
+  private logInput(tick: number): void {
+    // Two reversals on the same tick cancel out.
+    if (this.inputLog[this.inputLog.length - 1] === tick) this.inputLog.pop();
+    else this.inputLog.push(tick);
+  }
+
+  /** Press ticks that reproduce the current timeline from the level start. */
+  solution(): number[] {
+    return this.inputLog.slice();
   }
 
   private onLanding(): void {
@@ -171,7 +189,13 @@ export class Session {
 
   private endRewind(): void {
     const target = cloneState(this.rewindTarget ?? this.history[0]);
-    if (this.pendingFlip) target.dir = target.dir === 1 ? -1 : 1;
+    // Forget inputs from the rewound stretch of the timeline. An input logged at
+    // tick T was applied by the step leaving tick T, i.e. after a landing at T.
+    while (this.inputLog.length && this.inputLog[this.inputLog.length - 1] >= target.tick) this.inputLog.pop();
+    if (this.pendingFlip) {
+      target.dir = target.dir === 1 ? -1 : 1;
+      this.logInput(target.tick);
+    }
     this.pendingFlip = false;
     this.state = target;
     this.prev = target;

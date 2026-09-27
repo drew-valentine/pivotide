@@ -78,6 +78,11 @@ export interface LevelDef {
   hazards?: HazardDef[];
   sparks?: SparkDef[];
   par: { time: number; moves: number };
+  /**
+   * Reference solution: ticks on which to press reverse. Replaying it must win.
+   * Tests use it to prove every shipped level is solvable.
+   */
+  solution?: number[];
 }
 
 export type Status = 'playing' | 'hit' | 'won';

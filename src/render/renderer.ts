@@ -62,6 +62,8 @@ export class Renderer {
   private frame: Rect = { x: 0, y: 0, w: 1, h: 1 };
   palette!: Palette;
   opts: RenderOptions = { reducedMotion: false };
+  /** When set (editor), the camera frames this rect instead of the level content. */
+  frameOverride: Rect | null = null;
   private seg: Segment = { x1: 0, y1: 0, x2: 0, y2: 0, r: 0 };
   private p = { x: 0, y: 0 };
   private q = { x: 0, y: 0 };
@@ -100,6 +102,11 @@ export class Renderer {
     this.introDelay = dists.map((d) => 0.1 + (d / maxD) * 0.55);
   }
 
+  /** Show the level fully formed immediately (editor). */
+  skipIntro(): void {
+    this.introAt = -1e9;
+  }
+
   /** 0..1 reveal progress for peg i (with a little overshoot). */
   private intro(i: number): number {
     if (this.opts.reducedMotion) return 1;
@@ -120,7 +127,7 @@ export class Renderer {
     this.canvas.style.width = `${cssW}px`;
     this.canvas.style.height = `${cssH}px`;
     this.particles.budget = coarse ? 120 : 220;
-    if (this.level) this.camera.fit(this.frame, this.level.rod, cssW, cssH, insets);
+    if (this.level) this.camera.fit(this.frameOverride ?? this.frame, this.level.rod, cssW, cssH, insets);
   }
 
   /** Called on sim events so effects line up with the moment they happen. */

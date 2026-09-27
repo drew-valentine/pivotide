@@ -47,9 +47,16 @@ describe('pivot transfer', () => {
   it('does not recapture the old pivot while the tip is still on it (re-arm rule)', () => {
     let s = runUntil(level, initialState(level), (s) => s.pivot === 1);
     expect(s.armed).toBe(false);
-    s = step(level, s, true).state; // reverse immediately
     for (let i = 0; i < 20; i++) s = step(level, s, false).state;
     expect(s.pivot).toBe(1);
+    expect(s.armed).toBe(true);
+  });
+
+  it('reversing right after landing swings straight back onto the old pivot', () => {
+    let s = runUntil(level, initialState(level), (s) => s.pivot === 1);
+    s = step(level, s, true).state;
+    s = runUntil(level, s, (st) => st.pivot !== 1, 10);
+    expect(s.pivot).toBe(0);
   });
 
   it('reversing after leaving the old pivot swings back onto it', () => {

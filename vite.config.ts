@@ -9,6 +9,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
+        editor: resolve(import.meta.dirname, 'editor/index.html'),
       },
     },
   },

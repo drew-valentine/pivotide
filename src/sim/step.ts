@@ -126,6 +126,10 @@ export function step(level: CompiledLevel, input: WorldState, reverse: boolean):
 
   if (reverse) {
     s.dir = s.dir === 1 ? -1 : 1;
+    // Reversing always swings back toward the previous peg, so re-arm it now.
+    // Without this, a reversal inside the first few frames after a landing
+    // would skip the old peg: a frame-perfect trick no human can rely on.
+    s.armed = true;
     events.push({ type: 'reverse', dir: s.dir });
   }
 
