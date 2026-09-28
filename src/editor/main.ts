@@ -164,7 +164,7 @@ function recompile(): void {
   try {
     compiled = compileLevel(structuredClone(level));
     compileError = '';
-    backdrop.setPalette(paletteFor(level.world), 0.1 + (level.world - 1) * 0.4);
+    backdrop.setPalette(paletteFor(level.world), 0.5);
     renderer.setLevel(compiled, paletteFor(level.world));
     renderer.skipIntro();
     renderer.frameOverride = viewRect;
@@ -698,7 +698,7 @@ function renderPanel(): void {
   els.push(text('Id', level.id, (v) => (level.id = v.trim() || level.id)));
   els.push(text('Name', level.name, (v) => (level.name = v)));
   els.push(text('Hint', level.hint, (v) => { if (v.trim()) level.hint = v; else delete level.hint; }));
-  els.push(select('World', String(level.world) as '1' | '2' | '3', ['1', '2', '3'], (v) => (level.world = Number(v))));
+  els.push(select('World', String(level.world) as '1' | '2' | '3' | '4' | '5', ['1', '2', '3', '4', '5'], (v) => (level.world = Number(v))));
   els.push(num('Rod length', level.rod ?? 100, (v) => (level.rod = Math.max(30, v))));
   els.push(num('Speed (turn/s)', level.speed ?? 0.42, (v) => (level.speed = Math.max(0.05, v)), 0.02));
   els.push(num('Snap radius', level.snap ?? 14, (v) => (level.snap = Math.max(2, v))));
@@ -850,7 +850,7 @@ function openTest(): void {
   game.loop.paused = false;
   game.resize();
   wonRun = null;
-  game.load(structuredClone(level), { eyebrow: 'Test play', dusk: 0.1 + (level.world - 1) * 0.4 });
+  game.load(structuredClone(level), { eyebrow: 'Test play', dusk: 0.5 });
 }
 
 function closeTest(): void {

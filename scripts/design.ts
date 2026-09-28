@@ -22,6 +22,7 @@ interface Template extends LevelDef {
 const [tplPath, outPath, minS, maxS] = process.argv.slice(2);
 const tries = Number(process.argv.find((a) => a.startsWith('--tries='))?.split('=')[1] ?? 240);
 const limit = Number(process.argv.find((a) => a.startsWith('--time='))?.split('=')[1] ?? 4000);
+const wallCost = Number(process.argv.find((a) => a.startsWith('--wallcost='))?.split('=')[1] ?? 0.6);
 const minMoves = Number(minS), maxMoves = Number(maxS);
 const tpl = JSON.parse(readFileSync(tplPath, 'utf8')) as Template;
 
@@ -75,10 +76,14 @@ for (let t = 0; t < tries; t++) {
   const secs = sol.ticks / TICKS_PER_SEC;
   // Chill pace: no more than one required tap every 1.2 seconds on average.
   if (sol.moves > 0 && secs < sol.moves * 1.2) continue;
-  const kept = [...Array(optional.length).keys()].filter((k) => mask & (1 << k)).length;
-  // Prefer the top of the move range, more authored pieces kept, and a calm pace.
+  const keptIdx = [...Array(optional.length).keys()].filter((k) => mask & (1 << k));
+  const isWall = (k: number) => optional[k].list === 'hazards' && (tpl.hazards?.[optional[k].index] as { kind?: string } | undefined)?.kind === 'wall';
+  const keptWalls = keptIdx.filter(isWall).length;
+  const kept = keptIdx.length - keptWalls;
+  // Prefer the top of the move range, authored pieces kept, few thorns (less
+  // clutter), and a calm pace.
   const pace = secs < 3 ? -2 : secs > 40 ? -2 : 0;
-  const score = sol.moves * 3 + kept + pace + (n ? 1 : 0);
+  const score = sol.moves * 3 + kept - keptWalls * wallCost + pace + (n ? 1 : 0);
   if (!best || score > best.score) {
     best = { def, score, moves: sol.moves, secs, presses: sol.presses, all: all?.presses, note: `mask=${mask} start=${start.angle}/${start.dir} idle=${idle}` };
   }

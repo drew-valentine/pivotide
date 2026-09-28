@@ -124,10 +124,11 @@ export class Backdrop {
   }
 
   /**
-   * Apply a world palette. `dusk` (0..1) is progress through the whole game:
-   * the sun sinks from level to level and is gone by blue hour.
+   * Apply a world palette. `progress` (0..1) is progress through that world:
+   * the sun sinks level by level through the evening worlds, the moon climbs
+   * through the night, and the sun rises again at dawn.
    */
-  setPalette(p: Palette, dusk: number): void {
+  setPalette(p: Palette, progress: number): void {
     if (!this.current) {
       // First paint: apply colours instantly rather than fading in from defaults.
       this.root.classList.add('instant');
@@ -156,9 +157,11 @@ export class Backdrop {
       this.root.style.setProperty('--sun-glow', p.sunGlow);
       this.current = p;
     }
-    // Sun height: 0 = well above the dunes, 1 = fully set.
-    const sink = Math.min(1, Math.max(0, dusk));
-    this.root.style.setProperty('--sun-y', `${(70 + sink * 22).toFixed(1)}%`);
-    this.root.style.setProperty('--star-alpha', String(Math.max(0, sink * 1.4 - 0.3).toFixed(2)));
+    const t = Math.min(1, Math.max(0, progress));
+    const y = p.sunPath[0] + (p.sunPath[1] - p.sunPath[0]) * t;
+    const stars = p.starAlpha[0] + (p.starAlpha[1] - p.starAlpha[0]) * t;
+    this.sun.classList.toggle('moon', p.celestial === 'moon');
+    this.root.style.setProperty('--sun-y', `${y.toFixed(1)}%`);
+    this.root.style.setProperty('--star-alpha', stars.toFixed(2));
   }
 }

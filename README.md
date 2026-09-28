@@ -5,6 +5,8 @@ peg at the edge of a desert at sunset. When the free end sweeps over another
 peg, that peg becomes the new pivot. Your only move is to reverse the spin.
 Reach the oasis.
 
+Fifty levels across five worlds follow one evening into the next morning: Golden Hour, Afterglow, Blue Hour, Moonrise and First Dawn.
+
 There are no lives and no game over. Touching a thorn rewinds you to the last
 peg you landed on. Stars for par time and par moves are optional.
 
@@ -45,7 +47,7 @@ colour alone:
 ```sh
 npm install
 npm run dev       # game at http://localhost:5173/, editor at /editor/
-npm test          # Vitest: sim, collision, determinism, sessions, all 30 levels
+npm test          # Vitest: sim, collision, determinism, sessions, all 50 levels
 npm run build     # type-check and build to dist/
 ```
 
@@ -69,7 +71,7 @@ src/input/     pointer and keyboard input
 src/ui/        DOM helpers, icons, settings panel
 src/editor/    the level editor (and its solver worker)
 src/app.ts     title, level select, pause, settings, progression
-levels/        30 levels as JSON, ordered by levels/index.json
+levels/        50 levels as JSON, ordered by levels/index.json
 scripts/       level design tools (see below)
 tests/         Vitest suites and fixtures
 ```

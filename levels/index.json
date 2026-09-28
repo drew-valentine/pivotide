@@ -4,19 +4,86 @@
       "id": 1,
       "name": "Golden Hour",
       "blurb": "Warm light, long shadows, first steps.",
-      "levels": ["w1/01", "w1/02", "w1/03", "w1/04", "w1/05", "w1/06", "w1/07", "w1/08", "w1/09", "w1/10"]
+      "levels": [
+        "w1/01",
+        "w1/02",
+        "w1/03",
+        "w1/04",
+        "w1/05",
+        "w1/06",
+        "w1/07",
+        "w1/08",
+        "w1/09",
+        "w1/10"
+      ]
     },
     {
       "id": 2,
       "name": "Afterglow",
       "blurb": "Rose skies, drifting embers, crumbling stone.",
-      "levels": ["w2/01", "w2/02", "w2/03", "w2/04", "w2/05", "w2/06", "w2/07", "w2/08", "w2/09", "w2/10"]
+      "levels": [
+        "w2/01",
+        "w2/02",
+        "w2/03",
+        "w2/04",
+        "w2/05",
+        "w2/06",
+        "w2/07",
+        "w2/08",
+        "w2/09",
+        "w2/10"
+      ]
     },
     {
       "id": 3,
       "name": "Blue Hour",
       "blurb": "Cool air, first stars, pegs that wander.",
-      "levels": ["w3/01", "w3/02", "w3/03", "w3/04", "w3/05", "w3/06", "w3/07", "w3/08", "w3/09", "w3/10"]
+      "levels": [
+        "w3/01",
+        "w3/02",
+        "w3/03",
+        "w3/04",
+        "w3/05",
+        "w3/06",
+        "w3/07",
+        "w3/08",
+        "w3/09",
+        "w3/10"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Moonrise",
+      "blurb": "Silver dunes, a climbing moon, paths that bend.",
+      "levels": [
+        "w4/01",
+        "w4/02",
+        "w4/03",
+        "w4/04",
+        "w4/05",
+        "w4/06",
+        "w4/07",
+        "w4/08",
+        "w4/09",
+        "w4/10"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "First Dawn",
+      "blurb": "Birdsong, soft gold, the long way home.",
+      "levels": [
+        "w5/01",
+        "w5/02",
+        "w5/03",
+        "w5/04",
+        "w5/05",
+        "w5/06",
+        "w5/07",
+        "w5/08",
+        "w5/09",
+        "w5/10"
+      ]
     }
   ]
 }
