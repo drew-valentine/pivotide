@@ -27,6 +27,7 @@ Decisions (2026-09-27):
 | M4 Editor and levels | m4-editor-levels | v0.4.0 |
 | M5 Shell, accessibility, deploy | m5-shell | v0.5.0 |
 | M6 Thorns and new levels | m6-thorns, m6-levels | v0.5.3, v0.6.0 |
+| M7 Steering controls | m7-steer | v0.7.0 |
 
 Feedback (2026-09-27): the user said "this is looking great so far" and asked for thornier walls, with good taste, and 20 more original levels. This opened M6.
 
@@ -48,18 +49,6 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - AC: after one visit, the game and levels load offline.
 
 ## In Progress
-### M7 Steering controls
-- [ ] Directional steering | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m7-steer
-  - Request (2026-09-27): the user asked for the player to pick a direction instead of pressing one button that reverses.
-  - AC: → or D sets clockwise; ← or A sets counter-clockwise.
-  - AC: a tap or click on the right half of the screen sets clockwise; the left half sets counter-clockwise.
-  - AC: choosing the current direction does nothing and does not count as a move.
-  - AC: Space stays as a reverse toggle for one-switch accessibility.
-  - AC: a brief on-screen cue appears on the side that was tapped.
-  - AC: teaching hints, title footer, README and settings key list are updated.
-  - AC: session tests cover setting a direction, no-ops, and presses during rewind and pause.
-  - AC: stored level solutions still replay unchanged, since they are recorded as reversal ticks.
-  - AC: deploy after merge.
 
 ## Review
 
@@ -237,3 +226,20 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - Concern: some new levels use small "guard" thorns to force turn-around taps. Dew (w5-02) has five, which looks busy.
   - Concern: par values are still derived by the solver, not by human play.
   - Concern: Firefly Path (w4-04) takes about 20 seconds to play.
+
+### M7 Steering controls
+- [x] Directional steering | P1 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m7-steer
+  - Request (2026-09-27): the user asked for the player to pick a direction instead of pressing one button that reverses.
+  - AC: → or D sets clockwise; ← or A sets counter-clockwise.
+  - AC: a tap or click on the right half of the screen sets clockwise; the left half sets counter-clockwise.
+  - AC: choosing the current direction does nothing and does not count as a move.
+  - AC: Space stays as a reverse toggle for one-switch accessibility.
+  - AC: a brief on-screen cue appears on the side that was tapped.
+  - AC: teaching hints, title footer, README and settings key list are updated.
+  - AC: session tests cover setting a direction, no-ops, and presses during rewind and pause.
+  - AC: stored level solutions still replay unchanged, since they are recorded as reversal ticks.
+  - AC: deploy after merge.
+  - Merged to main, tagged v0.7.0, and deployed to https://drew-valentine.github.io/pivotide/.
+  - 418 Vitest tests pass. Six new steering tests cover no-ops, opposite presses that cancel out, presses during the intro pause, rewind, and replay equivalence.
+  - Verified in the browser: tapping either half of the screen and the arrow keys both steer correctly.
+  - Concern: first-time touch players have only the level 1 hint and the side cue to learn the split screen. Watch for this in playtests.
