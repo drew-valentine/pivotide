@@ -24,6 +24,9 @@ Decisions (2026-09-27):
 | M3 Special pegs, audio, polish | m3-specials | v0.3.0 |
 | M4 Editor and levels | m4-editor-levels | v0.4.0 |
 | M5 Shell, accessibility, deploy | m5-shell | v0.5.0 |
+| M6 Thorns and new levels | m6-thorns, m6-levels | not set |
+
+Feedback (2026-09-27): the user said "this is looking great so far" and asked for thornier walls, with good taste, and 20 more original levels. This opened M6.
 
 ## Backlog
 - [ ] Bump GitHub Actions to Node 24 versions | P2 | S | Created: 2026-09-27 | Owner: unassigned
@@ -31,7 +34,16 @@ Decisions (2026-09-27):
   - Why: GitHub warned on the first Actions run that Node 20 actions are deprecated.
 
 ## Ready
-Follow-ups after v0.5.0, all waiting on the user.
+### M6 Thorns and new levels
+- [ ] 20 new levels | P1 | XL | Created: 2026-09-27 | Owner: @builder | Branch: m6-levels
+  - AC: 20 original levels, added as new worlds or as extensions of existing ones; the build decides which.
+  - AC: each level has a stored solution that tests replay; idling never wins; each fits a phone.
+  - AC: difficulty ramps, and layouts vary more than the current hex patches.
+  - AC: the new levels appear in level select.
+  - AC: deploy after merge.
+  - Note: this covers most of the optional "Level geometry variety pass" card below.
+
+### Follow-ups after v0.5.0, all waiting on the user
 - [ ] By-ear audio mix pass | P2 | S | Created: 2026-09-27 | Owner: @user
   - AC: pivot notes, chimes and ambient pads are balanced on real speakers and headphones. Audio was verified headless only.
 - [ ] Human playtest of par values and difficulty order | P2 | M | Created: 2026-09-27 | Owner: @user
@@ -42,6 +54,12 @@ Follow-ups after v0.5.0, all waiting on the user.
   - AC: after one visit, the game and levels load offline.
 
 ## In Progress
+### M6 Thorns and new levels
+- [ ] Thornier walls | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m6-thorns
+  - AC: walls read as thorny stems at a glance, with curved thorns along both sides.
+  - AC: the look stays crisp and calm, and reads in all three palettes.
+  - AC: the drawn silhouette stays within a few units of the collision capsule.
+  - AC: walls stay distinct in shape from spiked embers and serrated blades.
 
 ## Review
 
