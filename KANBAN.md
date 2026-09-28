@@ -48,6 +48,18 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - AC: after one visit, the game and levels load offline.
 
 ## In Progress
+### M7 Steering controls
+- [ ] Directional steering | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m7-steer
+  - Request (2026-09-27): the user asked for the player to pick a direction instead of pressing one button that reverses.
+  - AC: → or D sets clockwise; ← or A sets counter-clockwise.
+  - AC: a tap or click on the right half of the screen sets clockwise; the left half sets counter-clockwise.
+  - AC: choosing the current direction does nothing and does not count as a move.
+  - AC: Space stays as a reverse toggle for one-switch accessibility.
+  - AC: a brief on-screen cue appears on the side that was tapped.
+  - AC: teaching hints, title footer, README and settings key list are updated.
+  - AC: session tests cover setting a direction, no-ops, and presses during rewind and pause.
+  - AC: stored level solutions still replay unchanged, since they are recorded as reversal ticks.
+  - AC: deploy after merge.
 
 ## Review
 

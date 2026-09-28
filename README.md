@@ -2,8 +2,8 @@
 
 A calm one-button puzzle game for the browser. You are a rod spinning around a
 peg at the edge of a desert at sunset. When the free end sweeps over another
-peg, that peg becomes the new pivot. Your only move is to reverse the spin.
-Reach the oasis.
+peg, that peg becomes the new pivot. Your only move is choosing which way it
+spins. Reach the oasis.
 
 Fifty levels across five worlds follow one evening into the next morning: Golden Hour, Afterglow, Blue Hour, Moonrise and First Dawn.
 
@@ -14,7 +14,9 @@ peg you landed on. Stars for par time and par moves are optional.
 
 | Action | Touch | Mouse | Keyboard |
 | --- | --- | --- | --- |
-| Reverse the spin | tap anywhere | click anywhere | Space |
+| Spin clockwise | tap the right half | click the right half | → or D |
+| Spin counter-clockwise | tap the left half | click the left half | ← or A |
+| Flip the spin (one-switch play) | | | Space |
 | Undo (rewind one peg) | ↶ button | ↶ button | Z or Backspace |
 | Restart | ⟲ button | ⟲ button | R |
 | Pause | ‖ button | ‖ button | Esc or P |
@@ -22,10 +24,13 @@ peg you landed on. Stars for par time and par moves are optional.
 
 **Two kinds of tap:**
 
+Choosing the direction the rod is already spinning does nothing, and it isn't
+counted as a move.
+
 - **Turn around:** right after the rod lands, the peg it came from lets the rod
   pass through for about a tenth of a turn. That peg is drawn as a ghost. If you
-  tap inside that window, the rod turns around its new pivot.
-- **Swing back:** if you tap later, the rod swings back onto the peg it came from.
+  switch direction inside that window, the rod turns around its new pivot.
+- **Swing back:** if you switch later, the rod swings back onto the peg it came from.
 
 **Pegs and hazards.** Each kind has its own shape, so none of them depends on
 colour alone:
@@ -83,7 +88,7 @@ between ticks. Angles are integers (2^20 units per turn). Trigonometry uses
 polynomials built only from addition and multiplication, and IEEE-754
 guarantees those operations round identically on every JavaScript engine.
 Moving pieces are pure functions of the tick. So a run is fully described by
-the ticks on which reverse was pressed. `tests/determinism.test.ts` checks that
+the ticks on which the spin changed direction. `tests/determinism.test.ts` checks that
 against a committed golden trace.
 
 ### Collision

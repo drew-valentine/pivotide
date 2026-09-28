@@ -96,3 +96,71 @@ describe('session input log', () => {
     expect(r.state).toEqual(s.state);
   });
 });
+
+describe('steering', () => {
+  const lv = makeLevel({
+    pegs: [{ id: 'a', x: 300, y: 300 }, { id: 'b', x: 400, y: 300 }, { id: 'g', x: 20, y: 20, kind: 'goal' }],
+    start: { peg: 'a', angle: 270, dir: 1 },
+  });
+
+  it('steering toward the current direction is a no-op and not a move', () => {
+    const s = new Session(lv, () => {});
+    expect(s.steer(1)).toBe(false);
+    expect(s.moves).toBe(0);
+    s.tick();
+    expect(s.state.dir).toBe(1);
+  });
+
+  it('steering the other way reverses on the next tick and counts one move', () => {
+    const s = new Session(lv, () => {});
+    expect(s.steer(-1)).toBe(true);
+    expect(s.steer(-1)).toBe(false); // already heading that way (queued)
+    expect(s.moves).toBe(1);
+    s.tick();
+    expect(s.state.dir).toBe(-1);
+  });
+
+  it('left then right before the next tick cancels out', () => {
+    const s = new Session(lv, () => {});
+    s.steer(-1);
+    s.steer(1);
+    expect(s.intendedDir()).toBe(1);
+    s.tick();
+    s.tick();
+    expect(s.state.dir).toBe(1);
+  });
+
+  it('steering during the intro pause sets the starting direction', () => {
+    const s = new Session(lv, () => {}, { startDelayMs: 800 });
+    expect(s.mode).toBe('breath');
+    s.steer(-1);
+    expect(s.state.dir).toBe(-1);
+    s.frame(900);
+    s.tick();
+    expect(s.state.dir).toBe(-1);
+  });
+
+  it('steering during a rewind applies when play resumes', () => {
+    const s = new Session(level, () => {});
+    while (s.mode === 'playing') s.tick();
+    expect(s.mode).toBe('rewind');
+    const resumeDir = s.intendedDir();
+    const other = resumeDir === 1 ? -1 : 1;
+    expect(s.steer(other)).toBe(true);
+    expect(s.steer(other)).toBe(false);
+    s.frame(HIT_REWIND_MS + 1);
+    expect(s.state.dir).toBe(other);
+  });
+
+  it('a steered run replays exactly from its input log', async () => {
+    const { runReplay } = await import('../src/sim/replay');
+    const s = new Session(lv, () => {});
+    for (let i = 0; i < 300; i++) {
+      if (i === 20) s.steer(-1);
+      if (i === 80) s.steer(-1); // no-op
+      if (i === 90) s.steer(1);
+      s.tick();
+    }
+    expect(runReplay(lv, s.solution(), s.state.tick).state).toEqual(s.state);
+  });
+});

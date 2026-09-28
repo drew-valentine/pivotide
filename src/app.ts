@@ -141,7 +141,7 @@ export class App {
         h('button', { class: 'btn big', onclick: () => this.showLevels() }, 'Levels'),
         h('button', { class: 'btn big ghost', onclick: () => this.showSettings(() => this.showTitle()) }, 'Settings'),
       ),
-      h('p', { class: 'title-foot' }, 'Tap, click or press Space to reverse the spin'),
+      h('p', { class: 'title-foot' }, 'Tap or click either side, or press ← →, to steer the spin'),
     );
     this.openOverlay(title);
   }

@@ -61,6 +61,8 @@ export class Game {
   private insets: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
   private probe: HTMLElement;
   private lastStats = '';
+  private cueL: HTMLElement;
+  private cueR: HTMLElement;
   /** Extra camera insets as fractions of the viewport (title-screen framing). */
   private frameBand: { top: number; bottom: number; left?: number; right?: number } | null = null;
 
@@ -95,7 +97,12 @@ export class Game {
     this.hintEl = h('div', { class: 'hint', role: 'status', 'aria-live': 'polite' });
     ui.append(hud, this.undoBtn, this.hintEl);
 
+    this.cueL = h('div', { class: 'steer-cue left', 'aria-hidden': 'true', html: CUE_CCW });
+    this.cueR = h('div', { class: 'steer-cue right', 'aria-hidden': 'true', html: CUE_CW });
+    ui.append(this.cueL, this.cueR);
+
     this.input = new Input(stage, {
+      steer: (dir) => this.steer(dir),
       reverse: () => this.session?.press(),
       undo: () => this.session?.undo(),
       restart: () => this.restart(),
@@ -209,6 +216,17 @@ export class Game {
     this.closeOverlay();
   }
 
+  /** Steer toward a direction and flash the matching side cue. */
+  steer(dir: 1 | -1): void {
+    const s = this.session;
+    if (!s || s.mode === 'won') return;
+    const changed = s.steer(dir);
+    const cue = dir === 1 ? this.cueR : this.cueL;
+    cue.classList.remove('flash', 'soft');
+    void cue.offsetWidth; // restart the animation
+    cue.classList.add(changed ? 'flash' : 'soft');
+  }
+
   /** Drop the current session (nothing ticks or draws until the next load). */
   clear(): void {
     clearTimeout(this.winTimer);
@@ -261,7 +279,7 @@ export class Game {
     this.hintEl.classList.remove('show');
     if (!text) return;
     // Hints are written for touch; adapt the verb for mouse and keyboard players.
-    this.hintEl.textContent = matchMedia('(pointer: fine)').matches ? text.replace(/^Tap\b/, 'Click or press Space') : text;
+    this.hintEl.textContent = matchMedia('(pointer: fine)').matches ? text.replace(/^Tap right or left\b/, 'Press → or ←') : text;
     this.hintTimer = window.setTimeout(() => {
       this.hintEl.classList.add('show');
       this.hintTimer = window.setTimeout(() => this.hintEl.classList.remove('show'), 6500);
@@ -333,3 +351,7 @@ export class Game {
     }
   }
 }
+
+// Side cues: a curved arrow showing the spin you just chose.
+const CUE_CW = '<svg viewBox="0 0 48 48"><path d="M14 34a14 14 0 1 1 20 0"/><path d="M34 24v10h-10"/></svg>';
+const CUE_CCW = '<svg viewBox="0 0 48 48"><path d="M34 34a14 14 0 1 0-20 0"/><path d="M14 24v10h10"/></svg>';

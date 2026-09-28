@@ -90,6 +90,6 @@ export function settingsPanel(save: Save, apply: () => void, preview: () => void
     reset(),
     h('p', { class: 'set-foot' },
       h('a', { href: `${import.meta.env.BASE_URL}editor/`, target: '_blank', rel: 'noopener' }, 'Open the level editor'),
-      ' · keys: Space reverse, Z undo, R restart, M mute, Esc pause'),
+      ' · keys: ← → steer, Space flip, Z undo, R restart, M mute, Esc pause'),
   );
 }

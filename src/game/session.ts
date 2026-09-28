@@ -106,6 +106,29 @@ export class Session {
     } else this.pendingFlip = !this.pendingFlip;
   }
 
+  /**
+   * The direction the rod will spin once pending input is applied: queued
+   * reversals, a flip requested during a rewind, or the current state.
+   */
+  intendedDir(): 1 | -1 {
+    if (this.mode === 'rewind') {
+      const base = this.rewindTarget?.dir ?? this.state.dir;
+      return this.pendingFlip ? (base === 1 ? -1 : 1) : base;
+    }
+    return this.queued % 2 === 1 ? (this.state.dir === 1 ? -1 : 1) : this.state.dir;
+  }
+
+  /**
+   * Steer: spin clockwise (1) or counter-clockwise (-1). Choosing the direction
+   * the rod is already heading is a no-op and not counted as a move. Returns
+   * whether the direction changed.
+   */
+  steer(dir: 1 | -1): boolean {
+    if (this.mode === 'won' || this.intendedDir() === dir) return false;
+    this.press();
+    return true;
+  }
+
   /** Rewind one pivot: back to the moment the rod landed on the previous peg. */
   undo(): void {
     if (this.mode === 'won' || this.mode === 'rewind') return;
