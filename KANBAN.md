@@ -7,6 +7,8 @@ Art direction: desert sunset. A warm layered sky gradient and dune silhouettes, 
 - W1 Golden Hour: amber and peach.
 - W2 Afterglow: rose and lavender.
 - W3 Blue Hour: indigo and teal, with the first stars.
+- W4 Moonrise: a crescent moon climbs (added in M6).
+- W5 First Dawn: the sun rises, closing the day cycle (added in M6).
 
 Card format: `- [ ] Title | P0-P3 | Size S/M/L/XL | Owner` followed by acceptance criteria (AC).
 Branch: record the branch name on each card once work starts.
@@ -24,7 +26,7 @@ Decisions (2026-09-27):
 | M3 Special pegs, audio, polish | m3-specials | v0.3.0 |
 | M4 Editor and levels | m4-editor-levels | v0.4.0 |
 | M5 Shell, accessibility, deploy | m5-shell | v0.5.0 |
-| M6 Thorns and new levels | m6-thorns, m6-levels | not set |
+| M6 Thorns and new levels | m6-thorns, m6-levels | v0.5.3, v0.6.0 |
 
 Feedback (2026-09-27): the user said "this is looking great so far" and asked for thornier walls, with good taste, and 20 more original levels. This opened M6.
 
@@ -34,15 +36,6 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - Why: GitHub warned on the first Actions run that Node 20 actions are deprecated.
 
 ## Ready
-### M6 Thorns and new levels
-- [ ] 20 new levels | P1 | XL | Created: 2026-09-27 | Owner: @builder | Branch: m6-levels
-  - AC: 20 original levels, added as new worlds or as extensions of existing ones; the build decides which.
-  - AC: each level has a stored solution that tests replay; idling never wins; each fits a phone.
-  - AC: difficulty ramps, and layouts vary more than the current hex patches.
-  - AC: the new levels appear in level select.
-  - AC: deploy after merge.
-  - Note: this covers most of the optional "Level geometry variety pass" card below.
-
 ### Follow-ups after v0.5.0, all waiting on the user
 - [ ] By-ear audio mix pass | P2 | S | Created: 2026-09-27 | Owner: @user
   - AC: pivot notes, chimes and ambient pads are balanced on real speakers and headphones. Audio was verified headless only.
@@ -50,16 +43,11 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - AC: pars are tuned by play and levels are reordered where needed. Some late levels need only 1 or 2 moves.
 - [ ] Level geometry variety pass (optional) | P3 | L | Created: 2026-09-27 | Owner: @user
   - AC: more layouts break away from the hex-patch pattern while keeping all level tests green.
+  - Largely addressed by M6 "20 new levels" (v0.6.0), which added pentagons, a heptagon, arcs, spirals, a star and lifts. What remains is reshaping the older hex-patch levels in W1 to W3, if wanted.
 - [ ] Offline service worker (optional) | P3 | S | Created: 2026-09-27 | Owner: @user
   - AC: after one visit, the game and levels load offline.
 
 ## In Progress
-### M6 Thorns and new levels
-- [ ] Thornier walls | P1 | M | Started: 2026-09-27 | Owner: @builder | Branch: m6-thorns
-  - AC: walls read as thorny stems at a glance, with curved thorns along both sides.
-  - AC: the look stays crisp and calm, and reads in all three palettes.
-  - AC: the drawn silhouette stays within a few units of the collision capsule.
-  - AC: walls stay distinct in shape from spiked embers and serrated blades.
 
 ## Review
 
@@ -216,3 +204,24 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - Repo: https://github.com/drew-valentine/pivotide (public).
   - Site: https://drew-valentine.github.io/pivotide/ with the editor at /pivotide/editor/.
   - The first Actions run passed tests, built and deployed. It warned that Node 20 actions are deprecated; see the Backlog card.
+
+### M6 Thorns and new levels
+- [x] Thornier walls | P1 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m6-thorns
+  - AC: walls read as thorny stems at a glance, with curved thorns along both sides.
+  - AC: the look stays crisp and calm, and reads in all palettes.
+  - AC: the drawn silhouette stays within a few units of the collision capsule.
+  - AC: walls stay distinct in shape from spiked embers and serrated blades.
+  - Merged to main and tagged v0.5.3. Walls are now tapered briar stems with hooked thorns, and they read in all palettes.
+- [x] 20 new levels | P1 | XL | Completed: 2026-09-27 | Owner: @builder | Branch: m6-levels
+  - AC: 20 original levels, added as new worlds or as extensions of existing ones; the build decides which.
+  - AC: each level has a stored solution that tests replay; idling never wins; each fits a phone.
+  - AC: difficulty ramps, and layouts vary more than the current hex patches.
+  - AC: the new levels appear in level select.
+  - AC: deploy after merge.
+  - Merged to main, tagged v0.6.0, and deployed to https://drew-valentine.github.io/pivotide/.
+  - Two new worlds complete the day cycle: Moonrise (w4) and First Dawn (w5). Each has its own palette and ambient pad. The crescent moon climbs through W4 and the sun rises in W5.
+  - Layouts move off the hex grid: pentagons, a heptagon, arcs, spirals, a star and lifts.
+  - 412 Vitest tests pass. A new check rejects overlapping pegs; it found a duplicate peg in w2-10, which was fixed.
+  - Concern: some new levels use small "guard" thorns to force turn-around taps. Dew (w5-02) has five, which looks busy.
+  - Concern: par values are still derived by the solver, not by human play.
+  - Concern: Firefly Path (w4-04) takes about 20 seconds to play.
