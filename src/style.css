@@ -1089,3 +1089,65 @@ input[type='range']:focus-visible {
     display: none;
   }
 }
+
+/* Steering cues: a soft glow and curved arrow on the side you chose. */
+.steer-cue {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 38%;
+  display: flex;
+  align-items: center;
+  pointer-events: none !important;
+  opacity: 0;
+}
+
+.steer-cue.left {
+  left: 0;
+  justify-content: flex-start;
+  padding-left: calc(var(--safe-l) + 1rem);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+}
+
+.steer-cue.right {
+  right: 0;
+  justify-content: flex-end;
+  padding-right: calc(var(--safe-r) + 1rem);
+  background: linear-gradient(270deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+}
+
+.steer-cue svg {
+  width: 2.75rem;
+  height: 2.75rem;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+.steer-cue.flash {
+  animation: cue 0.45s var(--ease-out);
+}
+
+.steer-cue.soft {
+  animation: cue-soft 0.3s ease-out;
+}
+
+@keyframes cue {
+  0% { opacity: 0; transform: scale(0.96); }
+  25% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+
+@keyframes cue-soft {
+  0% { opacity: 0; }
+  30% { opacity: 0.35; }
+  100% { opacity: 0; }
+}
+
+.reduced-motion .steer-cue.flash,
+.reduced-motion .steer-cue.soft {
+  animation-duration: 0.25s;
+}

@@ -2,7 +2,7 @@
   "id": "w1-02",
   "name": "Fork in the Sand",
   "world": 1,
-  "hint": "Tap just as you land to turn around",
+  "hint": "Switch sides just as you land to turn around",
   "start": {
     "peg": "p0",
     "angle": 250,

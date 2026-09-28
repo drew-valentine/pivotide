@@ -2,7 +2,7 @@
   "id": "w1-03",
   "name": "Turnback",
   "world": 1,
-  "hint": "Tap later to swing back the way you came",
+  "hint": "Switch later to swing back the way you came",
   "start": {
     "peg": "p0",
     "angle": 240,

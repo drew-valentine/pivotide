@@ -2,7 +2,7 @@
   "id": "w1-01",
   "name": "First Light",
   "world": 1,
-  "hint": "Tap to reverse the spin",
+  "hint": "Tap right or left to choose the spin",
   "start": {
     "peg": "p0",
     "angle": 250,

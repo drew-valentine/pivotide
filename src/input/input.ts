@@ -1,8 +1,12 @@
-// Input: one action (reverse) plus a few keyboard shortcuts.
-// Reverse fires on pointerdown/keydown for the lowest latency; touches on UI
-// controls (anything inside [data-ui]) never reach the game.
+// Input: steer the spin with left/right (keys, or tapping either half of the
+// screen), plus a few shortcuts. Steering fires on pointerdown/keydown for the
+// lowest latency; touches on UI controls (anything inside [data-ui]) never
+// reach the game.
 
 export interface InputHandlers {
+  /** 1 = clockwise (right), -1 = counter-clockwise (left). */
+  steer(dir: 1 | -1): void;
+  /** Flip the current direction (Space; kept for one-switch play). */
   reverse(): void;
   undo?(): void;
   restart?(): void;
@@ -23,7 +27,9 @@ export class Input {
       if ((e.target as HTMLElement).closest('[data-ui]')) return;
       if (e.button !== 0 && e.pointerType === 'mouse') return;
       e.preventDefault();
-      if (this.enabled) this.h.reverse();
+      // Left half of the stage turns counter-clockwise, right half clockwise.
+      const r = stage.getBoundingClientRect();
+      if (this.enabled) this.h.steer(e.clientX - r.left < r.width / 2 ? -1 : 1);
     };
     const onKey = (e: KeyboardEvent) => {
       this.h.gesture?.();
@@ -31,6 +37,18 @@ export class Input {
       const target = e.target as HTMLElement;
       const onControl = target.closest('button, input, select, textarea, a');
       switch (e.code) {
+        case 'ArrowLeft':
+        case 'KeyA':
+          if (target.closest('input, textarea, select')) return;
+          e.preventDefault();
+          if (this.enabled) this.h.steer(-1);
+          break;
+        case 'ArrowRight':
+        case 'KeyD':
+          if (target.closest('input, textarea, select')) return;
+          e.preventDefault();
+          if (this.enabled) this.h.steer(1);
+          break;
         case 'Space':
           if (onControl && !target.closest('[data-game-key]')) return;
           e.preventDefault();
