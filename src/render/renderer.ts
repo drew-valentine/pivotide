@@ -581,37 +581,85 @@ export class Renderer {
     }
   }
 
-  /** Walls: rounded slab with diagonal hatching, so they read without colour. */
+  /**
+   * Walls: a slender thorny stem. Curved thorns alternate along both sides and
+   * hook toward one end, like a desert briar. The stem sits inside the collision
+   * capsule and the thorn tips reach only a little past it, so what looks sharp
+   * is what hurts.
+   */
   private drawWall(sh: Segment): void {
     const { ctx, palette: pal } = this;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = pal.hazardEdge;
-    ctx.lineWidth = sh.r * 2 + 2;
-    this.line(sh.x1, sh.y1, sh.x2, sh.y2);
-    ctx.strokeStyle = pal.hazard;
-    ctx.lineWidth = sh.r * 2;
-    this.line(sh.x1, sh.y1, sh.x2, sh.y2);
-    // Hatching.
     const dx = sh.x2 - sh.x1, dy = sh.y2 - sh.y1;
     const len = Math.hypot(dx, dy);
-    if (len < 1) return;
-    const ux = dx / len, uy = dy / len;
+    const ux = len > 0 ? dx / len : 1, uy = len > 0 ? dy / len : 0;
     const nx = -uy, ny = ux;
-    ctx.save();
+    const stem = Math.max(1.4, sh.r * 0.46); // half-width of the stem at its middle
+    const reach = sh.r + 4.5; // thorn tip distance from the centre line
+    const spacing = Math.max(8.5, sh.r * 1.7);
+    const baseW = Math.max(4.5, sh.r * 1.15);
+    const lean = baseW * 0.85;
+    // Stem half-width along its length: full in the middle, tapering to the tips.
+    const halfAt = (d: number) => stem * (0.5 + 0.5 * Math.sin(Math.PI * Math.min(1, Math.max(0, d / Math.max(len, 1)))));
+
+    // Thorns first, so the stem covers their roots cleanly.
     ctx.beginPath();
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = pal.hazardEdge;
-    ctx.globalAlpha = 0.9;
-    ctx.lineWidth = 1.3;
-    const step = 7;
-    const hr = sh.r * 0.62;
-    for (let d = step / 2; d < len; d += step) {
+    let side = 1;
+    const count = Math.max(1, Math.floor((len - spacing * 0.3) / spacing));
+    const start = (len - (count - 1) * spacing) / 2;
+    for (let k = 0; k < count; k++, side = -side) {
+      const d = start + k * spacing;
       const cx = sh.x1 + ux * d, cy = sh.y1 + uy * d;
-      ctx.moveTo(cx - nx * hr - ux * hr * 0.6, cy - ny * hr - uy * hr * 0.6);
-      ctx.lineTo(cx + nx * hr + ux * hr * 0.6, cy + ny * hr + uy * hr * 0.6);
+      const w = halfAt(d);
+      const bx = cx + nx * side * w * 0.6, by = cy + ny * side * w * 0.6;
+      const b0x = bx - ux * baseW * 0.5, b0y = by - uy * baseW * 0.5;
+      const b1x = bx + ux * baseW * 0.5, b1y = by + uy * baseW * 0.5;
+      const tx = cx + nx * side * reach + ux * lean, ty = cy + ny * side * reach + uy * lean;
+      // Concave flanks: pull both control points toward the base so the tip is fine.
+      const c0x = (b0x + tx) / 2 + ux * baseW * 0.28 - nx * side * 0.6;
+      const c0y = (b0y + ty) / 2 + uy * baseW * 0.28 - ny * side * 0.6;
+      const c1x = (b1x + tx) / 2 - ux * baseW * 0.05 - nx * side * 0.9;
+      const c1y = (b1y + ty) / 2 - uy * baseW * 0.05 - ny * side * 0.9;
+      ctx.moveTo(b0x, b0y);
+      ctx.quadraticCurveTo(c0x, c0y, tx, ty);
+      ctx.quadraticCurveTo(c1x, c1y, b1x, b1y);
+      ctx.closePath();
     }
+    ctx.fillStyle = pal.hazard;
+    ctx.fill();
+    ctx.strokeStyle = pal.hazardEdge;
+    ctx.lineWidth = 1;
+    ctx.lineJoin = 'round';
     ctx.stroke();
-    ctx.restore();
+
+    // Stem: a tapered body with an edge line and a faint highlight along one side.
+    const N = 14;
+    ctx.beginPath();
+    for (let k = 0; k <= N; k++) {
+      const d = (k / N) * len, w = halfAt(d);
+      const x = sh.x1 + ux * d + nx * w, y = sh.y1 + uy * d + ny * w;
+      if (k === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.arc(sh.x2, sh.y2, halfAt(len), Math.atan2(ny, nx), Math.atan2(-ny, -nx));
+    for (let k = N; k >= 0; k--) {
+      const d = (k / N) * len, w = halfAt(d);
+      ctx.lineTo(sh.x1 + ux * d - nx * w, sh.y1 + uy * d - ny * w);
+    }
+    ctx.arc(sh.x1, sh.y1, halfAt(0), Math.atan2(-ny, -nx), Math.atan2(ny, nx));
+    ctx.closePath();
+    ctx.fillStyle = pal.hazard;
+    ctx.fill();
+    ctx.strokeStyle = pal.hazardEdge;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    if (len > 4) {
+      ctx.globalAlpha = 0.35;
+      ctx.strokeStyle = pal.hazardEdge;
+      ctx.lineWidth = 0.9;
+      const o = stem * 0.35;
+      this.line(sh.x1 + nx * o + ux * len * 0.15, sh.y1 + ny * o + uy * len * 0.15, sh.x2 + nx * o - ux * len * 0.15, sh.y2 + ny * o - uy * len * 0.15);
+      ctx.globalAlpha = 1;
+    }
   }
 
   /** Orbs: spiked circle. */
