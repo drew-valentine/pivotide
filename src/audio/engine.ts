@@ -22,6 +22,10 @@ export const WORLD_SOUNDS: WorldSound[] = [
   { root: 65, scale: [0, 2, 4, 7, 9], chords: [[41, 48, 55, 64], [46, 53, 57, 65], [38, 45, 52, 57]], cutoff: 1300, shimmer: false },
   // Blue Hour: cool A minor pentatonic with a high shimmer.
   { root: 69, scale: [0, 3, 5, 7, 10], chords: [[45, 52, 59, 60, 64], [41, 48, 52, 57, 64], [48, 55, 59, 62, 64]], cutoff: 760, shimmer: true },
+  // Moonrise: hushed D with suspended colours and a silver shimmer.
+  { root: 62, scale: [0, 2, 5, 7, 9], chords: [[38, 45, 52, 57, 62], [41, 48, 53, 60, 64], [36, 43, 50, 55, 62]], cutoff: 620, shimmer: true },
+  // First Dawn: bright G major pentatonic, opening up.
+  { root: 67, scale: [0, 2, 4, 7, 9], chords: [[43, 50, 55, 59, 62], [48, 55, 60, 64, 67], [40, 47, 52, 55, 59]], cutoff: 1500, shimmer: false },
 ];
 
 const CHORD_SECONDS = 14;

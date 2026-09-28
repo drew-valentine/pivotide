@@ -13,13 +13,13 @@ const root = join(import.meta.dirname, '..', 'levels');
 const keys = index.worlds.flatMap((w) => w.levels);
 
 describe('level catalogue', () => {
-  it('has 30 levels across 3 worlds', () => {
-    expect(index.worlds).toHaveLength(3);
-    expect(keys).toHaveLength(30);
+  it('has 50 levels across 5 worlds', () => {
+    expect(index.worlds).toHaveLength(5);
+    expect(keys).toHaveLength(50);
   });
 
   it('every level file is listed exactly once', () => {
-    const onDisk = ['w1', 'w2', 'w3'].flatMap((w) => readdirSync(join(root, w)).map((f) => `${w}/${f.replace('.json', '')}`));
+    const onDisk = ['w1', 'w2', 'w3', 'w4', 'w5'].flatMap((w) => readdirSync(join(root, w)).map((f) => `${w}/${f.replace('.json', '')}`));
     expect([...onDisk].sort()).toEqual([...keys].sort());
     expect(new Set(keys).size).toBe(keys.length);
   });
@@ -60,6 +60,15 @@ describe.each(keys)('level %s', (key) => {
     // phone (the renderer also enforces a minimum on-screen peg and rod size).
     expect(b.w / level.rod).toBeLessThanOrEqual(6.2);
     expect(b.h / b.w).toBeGreaterThanOrEqual(0.8);
+  });
+
+  it('has no overlapping pegs', () => {
+    const fixed = def.pegs.filter((p) => !p.path);
+    for (let a = 0; a < fixed.length; a++) {
+      for (let b = a + 1; b < fixed.length; b++) {
+        expect(Math.hypot(fixed[a].x - fixed[b].x, fixed[a].y - fixed[b].y), `${fixed[a].id} / ${fixed[b].id}`).toBeGreaterThanOrEqual(30);
+      }
+    }
   });
 
   it('id and world match its place in the catalogue', () => {

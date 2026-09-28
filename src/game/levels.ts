@@ -40,7 +40,8 @@ export function findLevel(key: string): LevelEntry | undefined {
   return ALL_LEVELS.find((l) => l.key === key);
 }
 
-/** 0..1 progress through the game, used to sink the sun level by level. */
+/** 0..1 progress through the entry's world, used to move the sun or moon level by level. */
 export function duskFor(entry: LevelEntry): number {
-  return ALL_LEVELS.length > 1 ? entry.global / (ALL_LEVELS.length - 1) : 0;
+  const n = WORLDS[entry.world - 1]?.levels.length ?? 1;
+  return n > 1 ? entry.index / (n - 1) : 0;
 }

@@ -131,6 +131,17 @@ body {
   transition: top 2.4s var(--ease-out), box-shadow 1.4s ease;
 }
 
+.sun.moon {
+  left: 13%;
+  width: 5.5vmin;
+  height: 5.5vmin;
+  margin: -2.75vmin 0 0 -2.75vmin;
+  background: transparent;
+  opacity: 0.9;
+  /* A crescent: the lit rim is an inset shadow on a clear disc. */
+  box-shadow: inset -1.3vmin 0.7vmin 0 0 var(--sun), 0 0 5vmin 0.6vmin var(--sun-glow);
+}
+
 .dune {
   position: absolute;
   left: 0;
@@ -667,6 +678,8 @@ body {
 
 .world-2 header { border-image: linear-gradient(180deg, #c393b6, #f6c29c) 1; }
 .world-3 header { border-image: linear-gradient(180deg, #233f68, #7ba3a6) 1; }
+.world-4 header { border-image: linear-gradient(180deg, #0b1026, #434878) 1; }
+.world-5 header { border-image: linear-gradient(180deg, #b59bc2, #ffd6a0) 1; }
 
 .world h2 {
   margin: 0;
@@ -986,28 +999,34 @@ input[type='range']:focus-visible {
 }
 
 /* Blue hour: light ink on dark sky */
-[data-world='3'] .btn.ghost {
+[data-world='3'] .btn.ghost,
+[data-world='4'] .btn.ghost {
   box-shadow: inset 0 0 0 0.0938rem rgba(238, 242, 251, 0.3);
 }
 
-[data-world='3'] .btn:not(.primary) {
+[data-world='3'] .btn:not(.primary),
+[data-world='4'] .btn:not(.primary) {
   color: var(--ink);
 }
 
-[data-world='3'] .btn.primary {
+[data-world='3'] .btn.primary,
+[data-world='4'] .btn.primary {
   background: #eef2fb;
   color: #16213f;
 }
 
-[data-world='3'] .levels-screen {
+[data-world='3'] .levels-screen,
+[data-world='4'] .levels-screen {
   background: linear-gradient(180deg, rgba(22, 33, 63, 0.45), rgba(22, 33, 63, 0.15));
 }
 
-[data-world='3'] .tile {
+[data-world='3'] .tile,
+[data-world='4'] .tile {
   background: rgba(255, 255, 255, 0.12);
 }
 
-[data-world='3'] .tile.done {
+[data-world='3'] .tile.done,
+[data-world='4'] .tile.done {
   background: rgba(255, 255, 255, 0.2);
 }
 
