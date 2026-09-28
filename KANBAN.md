@@ -234,7 +234,7 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - AC: a tap or click on the right half of the screen sets clockwise; the left half sets counter-clockwise.
   - AC: choosing the current direction does nothing and does not count as a move.
   - AC: Space stays as a reverse toggle for one-switch accessibility.
-  - AC: a brief on-screen cue appears on the side that was tapped.
+  - ~~AC: a brief on-screen cue appears on the side that was tapped.~~ Superseded 2026-09-27: side cue removed in v0.7.2.
   - AC: teaching hints, title footer, README and settings key list are updated.
   - AC: session tests cover setting a direction, no-ops, and presses during rewind and pause.
   - AC: stored level solutions still replay unchanged, since they are recorded as reversal ticks.
@@ -242,4 +242,5 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - Merged to main, tagged v0.7.0, and deployed to https://drew-valentine.github.io/pivotide/.
   - 418 Vitest tests pass. Six new steering tests cover no-ops, opposite presses that cancel out, presses during the intro pause, rewind, and replay equivalence.
   - Verified in the browser: tapping either half of the screen and the arrow keys both steer correctly.
-  - Concern: first-time touch players have only the level 1 hint and the side cue to learn the split screen. Watch for this in playtests.
+  - Concern: first-time touch players have only the level 1 hint and the side cue to learn the split screen. Watch for this in playtests. (Side cue removed in v0.7.2, so only the hint remains.)
+  - Note (2026-09-27): the user found the screen-edge flash on each direction change distracting, so it was removed (v0.7.2, deployed). Feedback now stays in the playfield: the pivot pulse and the direction arc.
