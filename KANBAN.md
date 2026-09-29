@@ -28,7 +28,7 @@ Decisions (2026-09-27):
 | M5 Shell, accessibility, deploy | m5-shell | v0.5.0 |
 | M6 Thorns and new levels | m6-thorns, m6-levels | v0.5.3, v0.6.0 |
 | M7 Steering controls | m7-steer | v0.7.0 |
-| M8 Swipe steering (experiment) | m8-swipe | TBD |
+| M8 Swipe steering (experiment) | m8-swipe | v0.8.0 |
 
 Feedback (2026-09-27): the user said "this is looking great so far" and asked for thornier walls, with good taste, and 20 more original levels. This opened M6.
 
@@ -50,17 +50,6 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - AC: after one visit, the game and levels load offline.
 
 ## In Progress
-### M8 Swipe steering (experiment)
-- [ ] Swipe to steer | P2 | M | Started: 2026-09-28 | Owner: @builder | Branch: m8-swipe
-  - Request (2026-09-28): the user asked to try swipe controls on touchscreens. The rod should head the way the user swipes; for example, if the tip is moving up and the user swipes down, it reverses.
-  - AC: on touch, a swipe picks the spin whose tip motion best matches the swipe direction (dot product with the tip's tangent). Up and down work as described, and so do left and right.
-  - AC: near-ambiguous swipes, such as a vertical swipe while the rod is almost vertical, are ignored.
-  - AC: a swipe fires as soon as it passes a short distance threshold, and a single drag can reverse again by changing direction.
-  - AC: taps do nothing in swipe mode.
-  - AC: a setting "Touch steering: Swipe / Tap sides" defaults to Swipe. Mouse and keyboard controls are unchanged.
-  - AC: the hint text adapts to swipe mode.
-  - AC: session tests cover the direction mapping, including during pause and rewind.
-  - AC: deploy after merge.
 
 ## Review
 
@@ -261,3 +250,22 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - Verified in the browser: tapping either half of the screen and the arrow keys both steer correctly.
   - Concern: first-time touch players have only the level 1 hint and the side cue to learn the split screen. Watch for this in playtests. (Side cue removed in v0.7.2, so only the hint remains.)
   - Note (2026-09-27): the user found the screen-edge flash on each direction change distracting, so it was removed (v0.7.2, deployed). Feedback now stays in the playfield: the pivot pulse and the direction arc.
+
+### M8 Swipe steering (experiment)
+- [x] Swipe to steer | P2 | M | Completed: 2026-09-28 | Owner: @builder | Branch: m8-swipe
+  - Request (2026-09-28): the user asked to try swipe controls on touchscreens. The rod should head the way the user swipes; for example, if the tip is moving up and the user swipes down, it reverses.
+  - AC: on touch, a swipe picks the spin whose tip motion best matches the swipe direction (dot product with the tip's tangent). Up and down work as described, and so do left and right.
+  - AC: near-ambiguous swipes, such as a vertical swipe while the rod is almost vertical, are ignored.
+  - AC: a swipe fires as soon as it passes a short distance threshold, and a single drag can reverse again by changing direction.
+  - AC: taps do nothing in swipe mode.
+  - AC: a setting "Touch steering: Swipe / Tap sides" defaults to Swipe. Mouse and keyboard controls are unchanged.
+  - AC: the hint text adapts to swipe mode.
+  - AC: session tests cover the direction mapping, including during pause and rewind.
+  - AC: deploy after merge.
+  - Merged to main, tagged v0.8.0, and deployed to https://drew-valentine.github.io/pivotide/.
+  - 425 Vitest tests pass.
+  - Verified real touch drags in headless Chrome via CDP: a tap does nothing, and an opposite swipe reverses and counts one move.
+  - Swipe is the default for touch. Settings > Controls > Touch steering switches back to Tap sides.
+  - Still an experiment: waiting on the user's feel test on a real phone.
+  - Concern: when the rod is near vertical, vertical swipes are ignored by design, which may feel unresponsive.
+  - Concern: the swipe threshold is 22px and has not been tuned on a device.
