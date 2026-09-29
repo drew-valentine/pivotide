@@ -35,7 +35,9 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: #ee8a68;
+  /* Shows around the canvas on iOS (toolbar and home-bar areas); follows the
+     world's darkest dune so the edge blends in. Updated in Game.applyTheme. */
+  background: var(--page-bg, #a9564d);
   font-family: var(--font);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
