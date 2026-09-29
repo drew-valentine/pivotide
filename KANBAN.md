@@ -205,6 +205,11 @@ Feedback (2026-09-27): the user said "this is looking great so far" and asked fo
   - Repo: https://github.com/drew-valentine/pivotide (public).
   - Site: https://drew-valentine.github.io/pivotide/ with the editor at /pivotide/editor/.
   - The first Actions run passed tests, built and deployed. It warned that Node 20 actions are deprecated; see the Backlog card.
+- [x] Mobile bottom stripe matched to world | P1 | S | Completed: 2026-09-28 | Owner: @builder | Release: v0.7.4
+  - Report: on iPhone an orange stripe showed at the bottom of the screen and clashed with the level theme.
+  - Cause: iOS Safari showed the fixed page background around the canvas in the toolbar and home-bar areas.
+  - Fix: the page background now follows each world's darkest dune color.
+  - Shipped as v0.7.4 and deployed.
 
 ### M6 Thorns and new levels
 - [x] Thornier walls | P1 | M | Completed: 2026-09-27 | Owner: @builder | Branch: m6-thorns
