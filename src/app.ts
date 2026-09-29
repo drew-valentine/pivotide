@@ -88,6 +88,7 @@ export class App {
     this.game.renderer.opts.reducedMotion = reduced;
     document.documentElement.classList.toggle('reduced-motion', reduced);
     this.game.setStatsVisible(s.showStats);
+    this.game.touchSteer = s.touchSteer;
   }
 
   // ---------------------------------------------------------------- screens
@@ -141,7 +142,10 @@ export class App {
         h('button', { class: 'btn big', onclick: () => this.showLevels() }, 'Levels'),
         h('button', { class: 'btn big ghost', onclick: () => this.showSettings(() => this.showTitle()) }, 'Settings'),
       ),
-      h('p', { class: 'title-foot' }, 'Tap or click either side, or press ← →, to steer the spin'),
+      h('p', { class: 'title-foot' },
+        matchMedia('(pointer: coarse)').matches && this.save.settings.touchSteer === 'swipe'
+          ? 'Swipe the way you want the rod to go'
+          : 'Tap or click either side, or press ← →, to steer the spin'),
     );
     this.openOverlay(title);
   }

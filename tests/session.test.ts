@@ -164,3 +164,71 @@ describe('steering', () => {
     expect(runReplay(lv, s.solution(), s.state.tick).state).toEqual(s.state);
   });
 });
+
+describe('swipe steering', () => {
+  // Start pointing right (angle 0), spinning clockwise: the tip is moving down.
+  const mk = (angle: number, dir: 1 | -1) =>
+    new Session(makeLevel({
+      pegs: [{ id: 'a', x: 300, y: 300 }, { id: 'g', x: 20, y: 20, kind: 'goal' }],
+      start: { peg: 'a', angle, dir },
+    }), () => {});
+
+  it('tip moving down: swiping down keeps it, swiping up reverses', () => {
+    const s = mk(0, 1);
+    expect(s.steerToward(0, 40)).toBe(false);
+    expect(s.moves).toBe(0);
+    expect(s.steerToward(0, -40)).toBe(true);
+    expect(s.intendedDir()).toBe(-1);
+  });
+
+  it('tip moving up: swiping down reverses', () => {
+    const s = mk(0, -1); // pointing right, counter-clockwise: tip heads up
+    expect(s.steerToward(0, -40)).toBe(false);
+    expect(s.steerToward(0, 40)).toBe(true);
+    expect(s.intendedDir()).toBe(1);
+  });
+
+  it('rod pointing left: down means counter-clockwise', () => {
+    const s = mk(180, 1); // pointing left, clockwise: tip heads up
+    expect(s.steerToward(0, 40)).toBe(true);
+    expect(s.intendedDir()).toBe(-1);
+  });
+
+  it('rod straight up: vertical swipes are ambiguous and ignored, sideways ones steer', () => {
+    const s = mk(270, 1); // pointing up, clockwise: tip heads right
+    expect(s.steerToward(0, 40)).toBe(false);
+    expect(s.steerToward(0, -40)).toBe(false);
+    expect(s.steerToward(-40, 0)).toBe(true);
+    expect(s.intendedDir()).toBe(-1);
+  });
+
+  it('diagonal swipes use the component along the tip motion', () => {
+    const s = mk(0, 1); // tip heads down
+    expect(s.steerToward(30, -30)).toBe(true); // mostly up-right: up wins
+    expect(s.intendedDir()).toBe(-1);
+  });
+
+  it('swiping during a rewind steers from the resume pose', () => {
+    const sess = new Session(level, () => {});
+    while (sess.mode === 'playing') sess.tick();
+    expect(sess.mode).toBe('rewind');
+    const before = sess.intendedDir();
+    // Try both vertical and horizontal swipes; one of them must reverse.
+    const changed = sess.steerToward(0, 40) || sess.steerToward(0, -40) || sess.steerToward(40, 0) || sess.steerToward(-40, 0);
+    expect(changed).toBe(true);
+    expect(sess.intendedDir()).toBe(before === 1 ? -1 : 1);
+    sess.frame(HIT_REWIND_MS + 1);
+    expect(sess.state.dir).toBe(before === 1 ? -1 : 1);
+  });
+});
+
+describe('hint wording', () => {
+  it('adapts teaching hints to keys and swipes', async () => {
+    const { adaptHint } = await import('../src/game/game');
+    expect(adaptHint('Tap right or left to choose the spin', 'keys')).toBe('Press → or ← to choose the spin');
+    expect(adaptHint('Tap right or left to choose the spin', 'swipe')).toBe('Swipe the way you want the rod to go');
+    expect(adaptHint('Switch sides just as you land to turn around', 'swipe')).toBe('Swipe back just as you land to turn around');
+    expect(adaptHint('Switch later to swing back the way you came', 'swipe')).toBe('Swipe later to swing back the way you came');
+    expect(adaptHint('Thorns just send you back. No harm done', 'swipe')).toBe('Thorns just send you back. No harm done');
+  });
+});

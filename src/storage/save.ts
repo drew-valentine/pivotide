@@ -11,6 +11,8 @@ export interface Settings {
   reducedMotion: 'system' | 'on' | 'off';
   haptics: boolean;
   showStats: boolean;
+  /** Touch steering: swipe the way the rod should go, or tap the left/right half. */
+  touchSteer: 'swipe' | 'sides';
 }
 
 export interface LevelRecord {
@@ -38,6 +40,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reducedMotion: 'system',
   haptics: true,
   showStats: true,
+  touchSteer: 'swipe',
 };
 
 function fresh(): SaveData {

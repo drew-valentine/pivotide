@@ -56,6 +56,21 @@ export function settingsPanel(save: Save, apply: () => void, preview: () => void
     return h('div', { class: 'set-row' }, h('span', { class: 'set-label' }, 'Motion'), group);
   };
 
+  const touch = () => {
+    const opts: Settings['touchSteer'][] = ['swipe', 'sides'];
+    const names = { swipe: 'Swipe', sides: 'Tap sides' };
+    const group = h('div', { class: 'segmented', role: 'radiogroup', 'aria-label': 'Touch steering' });
+    const render = () => {
+      group.replaceChildren(...opts.map((o) => {
+        const b = h('button', { role: 'radio', 'aria-checked': String(save.settings.touchSteer === o) }, names[o]);
+        b.addEventListener('click', () => { set({ touchSteer: o }); render(); (group.querySelector('[aria-checked="true"]') as HTMLElement)?.focus(); });
+        return b;
+      }));
+    };
+    render();
+    return h('div', { class: 'set-row' }, h('span', { class: 'set-label' }, 'Touch steering'), group);
+  };
+
   const reset = () => {
     const btn = h('button', { class: 'btn ghost danger' }, 'Reset progress') as HTMLButtonElement;
     let armed = false;
@@ -82,6 +97,8 @@ export function settingsPanel(save: Save, apply: () => void, preview: () => void
     slider('Music', 'music'),
     slider('Effects', 'sfx'),
     toggle('Mute', 'muted', 'M'),
+    h('h3', {}, 'Controls'),
+    touch(),
     h('h3', {}, 'Comfort'),
     motion(),
     toggle('Vibration', 'haptics', 'phones'),
