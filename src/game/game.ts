@@ -163,6 +163,7 @@ export class Game {
     root.setProperty('--ink', this.palette.ink);
     root.setProperty('--ink-soft', this.palette.inkSoft);
     root.setProperty('--panel', this.palette.panel);
+    root.setProperty('--page-bg', this.palette.dunes[this.palette.dunes.length - 1]);
     document.documentElement.dataset.world = String(world);
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', this.palette.sky[0][1]);
   }
