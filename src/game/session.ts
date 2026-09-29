@@ -1,6 +1,7 @@
 // A play session for one level: owns the sim state, queues input, keeps the
 // pivot history for rewind and undo, and produces interpolated views.
 
+import { dcos, dsin } from '../sim/fixed';
 import { cloneState, initialState, type CompiledLevel } from '../sim/level';
 import { step } from '../sim/step';
 import type { SimEvent, WorldState } from '../sim/types';
@@ -32,6 +33,8 @@ export type EventSink = (e: SessionEvent, s: WorldState) => void;
 export const HIT_REWIND_MS = 500;
 export const UNDO_REWIND_MS = 420;
 export const BREATH_MS = 400;
+/** Swipes must line up with the tip's motion at least this well (cosine) to count. */
+export const SWIPE_MIN_ALIGN = 0.2;
 /** Longest tape kept for rewind playback (ticks). */
 const TAPE_LIMIT = 120 * 90;
 
@@ -127,6 +130,22 @@ export class Session {
     if (this.mode === 'won' || this.intendedDir() === dir) return false;
     this.press();
     return true;
+  }
+
+  /**
+   * Steer so the free end heads the way the player swiped (screen vector
+   * dx, dy). Spinning clockwise moves the tip along (-sin a, cos a), so the
+   * sign of the swipe's dot product with that tangent picks the direction.
+   * Swipes nearly perpendicular to the tip's motion are ambiguous and ignored.
+   * Returns whether the direction changed.
+   */
+  steerToward(dx: number, dy: number, minAlign = SWIPE_MIN_ALIGN): boolean {
+    const len = Math.hypot(dx, dy);
+    if (len === 0 || this.mode === 'won') return false;
+    const ref = this.mode === 'rewind' ? this.rewindTarget ?? this.state : this.state;
+    const dot = (dx * -dsin(ref.angle) + dy * dcos(ref.angle)) / len;
+    if (Math.abs(dot) < minAlign) return false;
+    return this.steer(dot > 0 ? 1 : -1);
   }
 
   /** Rewind one pivot: back to the moment the rod landed on the previous peg. */

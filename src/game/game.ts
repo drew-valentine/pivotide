@@ -47,6 +47,8 @@ export class Game {
   level: CompiledLevel | null = null;
   palette: Palette = paletteFor(1);
   showStats = true;
+  /** How touch steers; set from settings. */
+  touchSteer: 'swipe' | 'sides' = 'swipe';
   /** Called when the current session is won (used by the title-screen demo). */
   onSessionWon: (() => void) | null = null;
   private hud: HTMLElement;
@@ -97,6 +99,8 @@ export class Game {
 
     this.input = new Input(stage, {
       steer: (dir) => this.steer(dir),
+      swipe: (dx, dy) => this.session?.steerToward(dx, dy),
+      touchMode: () => this.touchSteer,
       reverse: () => this.session?.press(),
       undo: () => this.session?.undo(),
       restart: () => this.restart(),
@@ -270,7 +274,7 @@ export class Game {
     this.hintEl.classList.remove('show');
     if (!text) return;
     // Hints are written for touch; adapt the verb for mouse and keyboard players.
-    this.hintEl.textContent = matchMedia('(pointer: fine)').matches ? text.replace(/^Tap right or left\b/, 'Press → or ←') : text;
+    this.hintEl.textContent = adaptHint(text, matchMedia('(pointer: fine)').matches ? 'keys' : this.touchSteer);
     this.hintTimer = window.setTimeout(() => {
       this.hintEl.classList.add('show');
       this.hintTimer = window.setTimeout(() => this.hintEl.classList.remove('show'), 6500);
@@ -343,3 +347,18 @@ export class Game {
   }
 }
 
+
+/**
+ * Hints are written for tapping the left/right half. Rephrase them for
+ * keyboard players and for swipe steering.
+ */
+export function adaptHint(text: string, mode: 'keys' | 'swipe' | 'sides'): string {
+  if (mode === 'keys') return text.replace(/^Tap right or left\b/, 'Press → or ←');
+  if (mode === 'swipe') {
+    return text
+      .replace(/^Tap right or left to choose the spin/, 'Swipe the way you want the rod to go')
+      .replace(/^Switch sides\b/, 'Swipe back')
+      .replace(/^Switch later\b/, 'Swipe later');
+  }
+  return text;
+}
